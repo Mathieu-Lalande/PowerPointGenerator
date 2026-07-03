@@ -1,0 +1,12 @@
+node_modules
+package-lock.json
+.next
+out
+.env
+.env.local
+.env*.local
+npm-debug.log*
+.DS_Store
+*.pptx
+next-env.d.ts
+*.tsbuildinfo
