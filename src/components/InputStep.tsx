@@ -52,7 +52,7 @@ export default function InputStep({ onGenerate, loading, error }: Props) {
 
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <div className="card p-6">
-          <label className="mb-3 block text-sm font-medium text-white/70">
+          <label className="mb-3 block text-center text-sm font-medium text-white/70">
             Que voulez-vous transformer en présentation ?
           </label>
           <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -85,7 +85,7 @@ export default function InputStep({ onGenerate, loading, error }: Props) {
             className="input-field h-56 resize-none"
           />
 
-          <div className="mt-4 flex flex-wrap items-center gap-4">
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-6">
             <div className="flex items-center gap-2">
               <span className="text-xs text-white/50">Nombre de slides</span>
               <input
@@ -139,7 +139,7 @@ export default function InputStep({ onGenerate, loading, error }: Props) {
         </div>
 
         <div className="card p-6">
-          <label className="mb-3 block text-sm font-medium text-white/70">
+          <label className="mb-3 block text-center text-sm font-medium text-white/70">
             Choisissez un thème
           </label>
           <ThemeGrid selectedId={themeId} onSelect={setThemeId} />

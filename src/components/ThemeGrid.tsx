@@ -20,7 +20,7 @@ export default function ThemeGrid({ selectedId, onSelect, compact }: Props) {
             type="button"
             onClick={() => onSelect(theme.id)}
             className={clsx(
-              "group relative overflow-hidden rounded-xl border p-3 text-left transition",
+              "group relative flex flex-col items-center overflow-hidden rounded-xl border p-3 text-center transition",
               active ? "border-accent shadow-glow" : "border-border hover:border-accent/50"
             )}
             style={{ backgroundColor: theme.colors.background }}
@@ -29,7 +29,7 @@ export default function ThemeGrid({ selectedId, onSelect, compact }: Props) {
               className="mb-3 h-12 w-full rounded-lg"
               style={{ backgroundColor: theme.colors.primary }}
             />
-            <div className="flex gap-1.5 mb-2">
+            <div className="mb-2 flex justify-center gap-1.5">
               {[theme.colors.primary, theme.colors.secondary, theme.colors.accent].map((c, i) => (
                 <span
                   key={i}

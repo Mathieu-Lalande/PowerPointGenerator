@@ -86,18 +86,18 @@ export default function EditorStep({ presentation, onChange, onBack }: Props) {
 
   return (
     <div className="flex h-screen flex-col">
-      <header className="flex items-center justify-between border-b border-border bg-surface/80 px-5 py-3 backdrop-blur">
-        <div className="flex items-center gap-3">
+      <header className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-border bg-surface/80 px-5 py-3 backdrop-blur">
+        <div className="justify-self-start">
           <button onClick={onBack} className="btn-secondary px-3 py-1.5 text-xs">
             <ArrowLeft size={14} /> Nouveau
           </button>
-          <input
-            value={presentation.title}
-            onChange={(e) => onChange({ ...presentation, title: e.target.value })}
-            className="rounded-lg bg-transparent px-2 py-1 text-lg font-semibold text-white outline-none focus:bg-surface-2"
-          />
         </div>
-        <div className="flex items-center gap-2">
+        <input
+          value={presentation.title}
+          onChange={(e) => onChange({ ...presentation, title: e.target.value })}
+          className="w-full max-w-md justify-self-center rounded-lg bg-transparent px-2 py-1 text-center text-lg font-semibold text-white outline-none focus:bg-surface-2"
+        />
+        <div className="flex items-center justify-self-end gap-2">
           <button
             onClick={() => setPanel(panel === "theme" ? "content" : "theme")}
             className={clsx("btn-secondary px-3 py-1.5 text-xs", panel === "theme" && "border-accent")}
