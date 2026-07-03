@@ -58,7 +58,13 @@ export async function exportPresentationToPdf(
           React.createElement(
             "div",
             { style: { width: nativeWidth, height: nativeHeight } },
-            React.createElement(ScaledSlide, { slide, theme, accent, nativeWidth })
+            React.createElement(ScaledSlide, {
+              slide,
+              theme,
+              accent,
+              nativeWidth,
+              logoDataUrl: presentation.brandKit?.logoDataUrl,
+            })
           )
         );
         setTimeout(resolve, 60);

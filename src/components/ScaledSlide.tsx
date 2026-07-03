@@ -12,6 +12,7 @@ interface Props {
   animate?: boolean;
   editable?: boolean;
   onEdit?: (patch: Partial<Slide>) => void;
+  logoDataUrl?: string;
 }
 
 export default function ScaledSlide({
@@ -22,6 +23,7 @@ export default function ScaledSlide({
   animate = false,
   editable = false,
   onEdit,
+  logoDataUrl,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0);
@@ -55,6 +57,7 @@ export default function ScaledSlide({
           animate={animate}
           editable={editable}
           onEdit={onEdit}
+          logoDataUrl={logoDataUrl}
         />
       </div>
     </div>

@@ -17,6 +17,7 @@ interface Props {
   onDuplicate: (id: string) => void;
   onDelete: (id: string) => void;
   onAdd: () => void;
+  logoDataUrl?: string;
 }
 
 export default function SlideList({
@@ -30,6 +31,7 @@ export default function SlideList({
   onDuplicate,
   onDelete,
   onAdd,
+  logoDataUrl,
 }: Props) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
@@ -119,7 +121,7 @@ export default function SlideList({
             </div>
           </div>
           <div className="aspect-video w-full overflow-hidden rounded-md">
-            <ScaledSlide slide={slide} theme={theme} accent={accent} />
+            <ScaledSlide slide={slide} theme={theme} accent={accent} logoDataUrl={logoDataUrl} />
           </div>
         </div>
       ))}

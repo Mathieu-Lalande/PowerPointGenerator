@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { v4 as uuid } from "uuid";
-import type { Presentation, Slide, Theme } from "@/types/slide";
-import { THEMES, getTheme } from "@/lib/themes";
+import type { BrandKit, Presentation, Slide, Theme } from "@/types/slide";
+import { THEMES, getTheme, applyBrandKit } from "@/lib/themes";
 import SlideList from "@/components/SlideList";
 import ScaledSlide from "@/components/ScaledSlide";
 import Inspector from "@/components/Inspector";
 import PalettePicker from "@/components/PalettePicker";
 import ThemeGrid from "@/components/ThemeGrid";
+import BrandKitPanel from "@/components/BrandKitPanel";
 import { exportPresentationToPptx } from "@/lib/pptx-export";
 import { exportPresentationToPdf } from "@/lib/pdf-export";
 import { saveAutosave } from "@/lib/drafts";
@@ -24,6 +25,7 @@ import {
   Undo2,
   Redo2,
   FileDown,
+  Building2,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -43,10 +45,14 @@ function emptySlide(): Slide {
 }
 
 export default function EditorStep({ presentation, onChange, onBack }: Props) {
-  const theme: Theme = useMemo(() => getTheme(presentation.themeId), [presentation.themeId]);
+  const theme: Theme = useMemo(
+    () => applyBrandKit(getTheme(presentation.themeId), presentation.brandKit),
+    [presentation.themeId, presentation.brandKit]
+  );
   const accent = presentation.paletteOverride?.[0] || theme.colors.accent;
+  const logoDataUrl = presentation.brandKit?.logoDataUrl;
   const [selectedId, setSelectedId] = useState(presentation.slides[0]?.id);
-  const [panel, setPanel] = useState<"content" | "theme" | "palette">("content");
+  const [panel, setPanel] = useState<"content" | "theme" | "palette" | "brand">("content");
   const [exporting, setExporting] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [presenting, setPresenting] = useState(false);
@@ -228,6 +234,12 @@ export default function EditorStep({ presentation, onChange, onBack }: Props) {
           >
             <Palette size={14} /> Palette
           </button>
+          <button
+            onClick={() => setPanel(panel === "brand" ? "content" : "brand")}
+            className={clsx("btn-secondary px-3 py-1.5 text-xs", panel === "brand" && "border-accent")}
+          >
+            <Building2 size={14} /> Kit de marque
+          </button>
           <button onClick={() => setPresenting(true)} className="btn-secondary px-3 py-1.5 text-xs">
             <Play size={14} /> Présenter
           </button>
@@ -255,6 +267,7 @@ export default function EditorStep({ presentation, onChange, onBack }: Props) {
             onDuplicate={duplicateSlide}
             onDelete={deleteSlide}
             onAdd={addSlide}
+            logoDataUrl={logoDataUrl}
           />
         </aside>
 
@@ -267,6 +280,7 @@ export default function EditorStep({ presentation, onChange, onBack }: Props) {
                 accent={accent}
                 editable
                 onEdit={(patch) => patchSlide(selected.id, patch, { immediate: true })}
+                logoDataUrl={logoDataUrl}
               />
             </div>
           )}
@@ -300,6 +314,15 @@ export default function EditorStep({ presentation, onChange, onBack }: Props) {
                   Réinitialiser au thème
                 </button>
               )}
+            </div>
+          )}
+          {panel === "brand" && (
+            <div>
+              <h3 className="mb-3 text-sm font-semibold text-white/80">Kit de marque</h3>
+              <BrandKitPanel
+                brandKit={presentation.brandKit}
+                onChange={(brandKit) => commit({ ...presentation, brandKit })}
+              />
             </div>
           )}
           {panel === "content" && selected && (
