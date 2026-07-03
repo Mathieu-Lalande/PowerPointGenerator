@@ -5,6 +5,7 @@ import { v4 as uuid } from "uuid";
 import InputStep from "@/components/InputStep";
 import EditorStep from "@/components/EditorStep";
 import type { GenerateRequest, Presentation, Slide } from "@/types/slide";
+import type { DraftEntry } from "@/lib/drafts";
 
 type Step = "input" | "editor";
 
@@ -31,6 +32,7 @@ export default function Home() {
         id: uuid(),
         title: data.title,
         themeId: req.themeId,
+        language: req.language,
         slides: data.slides.map((s: Slide) => ({ ...s, id: s.id || uuid() })),
       });
       setStep("editor");
@@ -39,6 +41,11 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleResumeDraft(draft: DraftEntry) {
+    setPresentation(draft.presentation);
+    setStep("editor");
   }
 
   if (step === "editor" && presentation) {
@@ -54,5 +61,12 @@ export default function Home() {
     );
   }
 
-  return <InputStep onGenerate={handleGenerate} loading={loading} error={error} />;
+  return (
+    <InputStep
+      onGenerate={handleGenerate}
+      loading={loading}
+      error={error}
+      onResumeDraft={handleResumeDraft}
+    />
+  );
 }

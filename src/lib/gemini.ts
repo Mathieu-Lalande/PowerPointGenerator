@@ -5,7 +5,7 @@ import {
   type Schema,
   type FunctionDeclarationSchema,
 } from "@google/generative-ai";
-import type { GenerateRequest, GenerateResponse, Slide } from "@/types/slide";
+import type { GenerateRequest, GenerateResponse, Slide, Theme } from "@/types/slide";
 import { getTheme } from "@/lib/themes";
 import { ALL_ICON_IDS } from "@/lib/icons";
 import { buildSystemPrompt, buildUserMessage } from "@/lib/presentation-prompt";
@@ -49,15 +49,50 @@ const SLIDE_SCHEMA: Schema = {
       "chart",
       "image-text",
       "diagram",
+      "agenda",
+      "stat",
+      "comparison",
+      "team",
       "closing",
     ]),
     title: { type: SchemaType.STRING },
     subtitle: { type: SchemaType.STRING },
-    bullets: bulletsSchema(4, "4 ou 5 bullets informatives (8 à 14 mots chacune), jamais moins de 4."),
+    bullets: bulletsSchema(
+      4,
+      "4 ou 5 bullets informatives (8 à 14 mots chacune), jamais moins de 4. Pour layout=agenda, chaque bullet est le titre court d'une partie de la présentation."
+    ),
     leftBullets: bulletsSchema(3, "3 à 4 bullets informatives (8 à 14 mots chacune)."),
     rightBullets: bulletsSchema(3, "3 à 4 bullets informatives (8 à 14 mots chacune)."),
+    leftTitle: {
+      type: SchemaType.STRING,
+      description: "Uniquement pour layout=comparison : titre court de l'option/scénario de gauche.",
+    },
+    rightTitle: {
+      type: SchemaType.STRING,
+      description: "Uniquement pour layout=comparison : titre court de l'option/scénario de droite.",
+    },
     body: { type: SchemaType.STRING },
     quoteAuthor: { type: SchemaType.STRING },
+    statValue: {
+      type: SchemaType.STRING,
+      description: "Uniquement pour layout=stat : le chiffre clé à mettre en avant (ex: '87%', '3,2M€').",
+    },
+    statLabel: {
+      type: SchemaType.STRING,
+      description: "Uniquement pour layout=stat : légende courte expliquant le chiffre.",
+    },
+    teamMembers: {
+      type: SchemaType.ARRAY,
+      description: "Uniquement pour layout=team : liste des membres de l'équipe présentés.",
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          name: { type: SchemaType.STRING },
+          role: { type: SchemaType.STRING },
+        },
+        required: ["name", "role"],
+      },
+    },
     icon: stringEnum(ALL_ICON_IDS),
     chart: {
       type: SchemaType.OBJECT,
@@ -140,4 +175,51 @@ export async function generatePresentation(
   }));
 
   return { title: input.title, slides };
+}
+
+export async function regenerateSlide(
+  slide: Slide,
+  theme: Theme,
+  language: string,
+  instruction?: string
+): Promise<Slide> {
+  const genAI = client();
+
+  const model = genAI.getGenerativeModel({
+    model: MODEL,
+    systemInstruction: `Tu es un directeur artistique et consultant senior spécialisé dans les présentations PowerPoint haut de gamme. Style visé : ${theme.name} (${theme.description}). Rédige dans la langue: ${language}. Respecte les mêmes règles de densité que pour une présentation complète (bullets informatives de 8 à 14 mots, jamais de contenu vide).`,
+    tools: [
+      {
+        functionDeclarations: [
+          {
+            name: "rewrite_slide",
+            description:
+              "Reformule ou améliore le contenu d'une seule slide de présentation, en conservant son layout sauf si un meilleur layout est explicitement demandé.",
+            parameters: SLIDE_SCHEMA as FunctionDeclarationSchema,
+          },
+        ],
+      },
+    ],
+    toolConfig: {
+      functionCallingConfig: {
+        mode: FunctionCallingMode.ANY,
+        allowedFunctionNames: ["rewrite_slide"],
+      },
+    },
+  });
+
+  const prompt = `Voici une slide existante d'une présentation, au format JSON :\n\n${JSON.stringify(
+    slide
+  )}\n\nReformule et améliore le contenu de cette slide (texte plus percutant, plus précis, mieux structuré) en conservant son layout "${slide.layout}".${
+    instruction ? ` Consigne spécifique : ${instruction}` : ""
+  }`;
+
+  const result = await model.generateContent(prompt);
+  const call = result.response.functionCalls()?.[0];
+  if (!call) {
+    throw new Error("Gemini n'a pas retourné de structure exploitable.");
+  }
+
+  const input = call.args as Slide;
+  return { ...input, id: slide.id };
 }

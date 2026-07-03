@@ -7,6 +7,10 @@ export type SlideLayout =
   | "chart"
   | "image-text"
   | "diagram"
+  | "agenda"
+  | "stat"
+  | "comparison"
+  | "team"
   | "closing";
 
 export type ChartType = "bar" | "line" | "pie" | "donut";
@@ -22,6 +26,11 @@ export interface ChartData {
   series: ChartSeries[];
 }
 
+export interface TeamMember {
+  name: string;
+  role: string;
+}
+
 export interface Slide {
   id: string;
   layout: SlideLayout;
@@ -30,6 +39,8 @@ export interface Slide {
   bullets?: string[];
   leftBullets?: string[];
   rightBullets?: string[];
+  leftTitle?: string;
+  rightTitle?: string;
   body?: string;
   quoteAuthor?: string;
   chart?: ChartData;
@@ -38,6 +49,9 @@ export interface Slide {
   imageDataUrl?: string;
   frame?: string;
   notes?: string;
+  statValue?: string;
+  statLabel?: string;
+  teamMembers?: TeamMember[];
 }
 
 export interface ThemeColors {
@@ -70,6 +84,7 @@ export interface Presentation {
   id: string;
   title: string;
   themeId: string;
+  language?: string;
   paletteOverride?: string[];
   slides: Slide[];
 }

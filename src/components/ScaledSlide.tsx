@@ -10,9 +10,19 @@ interface Props {
   accent: string;
   nativeWidth?: number;
   animate?: boolean;
+  editable?: boolean;
+  onEdit?: (patch: Partial<Slide>) => void;
 }
 
-export default function ScaledSlide({ slide, theme, accent, nativeWidth = 960, animate = false }: Props) {
+export default function ScaledSlide({
+  slide,
+  theme,
+  accent,
+  nativeWidth = 960,
+  animate = false,
+  editable = false,
+  onEdit,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0);
   const nativeHeight = (nativeWidth * 9) / 16;
@@ -38,7 +48,14 @@ export default function ScaledSlide({ slide, theme, accent, nativeWidth = 960, a
           visibility: scale > 0 ? "visible" : "hidden",
         }}
       >
-        <SlideCanvas slide={slide} theme={theme} accent={accent} animate={animate} />
+        <SlideCanvas
+          slide={slide}
+          theme={theme}
+          accent={accent}
+          animate={animate}
+          editable={editable}
+          onEdit={onEdit}
+        />
       </div>
     </div>
   );
