@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import SlideCanvas from "@/components/SlideCanvas";
 import type { Slide, Theme } from "@/types/slide";
 
@@ -15,7 +15,7 @@ interface Props {
   logoDataUrl?: string;
 }
 
-export default function ScaledSlide({
+function ScaledSlide({
   slide,
   theme,
   accent,
@@ -63,3 +63,9 @@ export default function ScaledSlide({
     </div>
   );
 }
+
+// Rehearsal mode (and any other parent-driven re-render unrelated to this
+// slide's own data, e.g. a live timer ticking every second) would otherwise
+// force SlideCanvas to fully remount and replay its entrance animations —
+// memoize so it only re-renders when its own props actually change.
+export default memo(ScaledSlide);

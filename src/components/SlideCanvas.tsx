@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { memo, useRef } from "react";
 import type { CSSProperties, FocusEvent } from "react";
 import type { BoxOverride, Slide, Theme } from "@/types/slide";
 import { getFrame } from "@/lib/frames";
@@ -30,7 +30,7 @@ interface Props {
 
 type EditableTag = "div" | "span" | "h1" | "h2" | "h3" | "p";
 
-export default function SlideCanvas({
+function SlideCanvas({
   slide,
   theme,
   accent,
@@ -705,3 +705,10 @@ export default function SlideCanvas({
 
   return base;
 }
+
+// Editable/Movable are recreated as new component instances on every render
+// of this function, so an unmemoized SlideCanvas would fully unmount and
+// remount every text block (replaying entrance animations) whenever a parent
+// re-renders for an unrelated reason (e.g. a live timer ticking every
+// second) even though the slide's own data hasn't changed.
+export default memo(SlideCanvas);
