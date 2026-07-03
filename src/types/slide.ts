@@ -31,6 +31,22 @@ export interface TeamMember {
   role: string;
 }
 
+/** Freeform position/size override for a movable text block, in percentages of the slide canvas. */
+export interface BoxOverride {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface BrandKit {
+  logoDataUrl?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  headingFont?: string;
+  bodyFont?: string;
+}
+
 export interface Slide {
   id: string;
   layout: SlideLayout;
@@ -52,6 +68,8 @@ export interface Slide {
   statValue?: string;
   statLabel?: string;
   teamMembers?: TeamMember[];
+  /** Per-slide freeform position/size overrides for movable text blocks, keyed by slot name. */
+  textOverrides?: Record<string, BoxOverride>;
 }
 
 export interface ThemeColors {
@@ -86,6 +104,7 @@ export interface Presentation {
   themeId: string;
   language?: string;
   paletteOverride?: string[];
+  brandKit?: BrandKit;
   slides: Slide[];
 }
 

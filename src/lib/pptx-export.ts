@@ -7,6 +7,33 @@ import { svgToRasterInfo, fitContain } from "@/lib/svg-raster";
 
 const hex = (c: string) => c.replace("#", "");
 
+const PPTX_W = 10;
+const PPTX_H = 5.63;
+
+interface Box {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * Resolves a text block's pptx position/size: uses the user's freeform
+ * override (percentages of the slide canvas, set via drag/resize in the web
+ * editor) when present, otherwise falls back to the hand-tuned default that
+ * approximates the web preview's flow layout.
+ */
+function box(slide: Slide, slotKey: string, fallback: Box): Box {
+  const o = slide.textOverrides?.[slotKey];
+  if (!o) return fallback;
+  return {
+    x: (o.x / 100) * PPTX_W,
+    y: (o.y / 100) * PPTX_H,
+    w: (o.w / 100) * PPTX_W,
+    h: (o.h / 100) * PPTX_H,
+  };
+}
+
 // The web preview uses real Google Fonts (Space Grotesk, Sora, Playfair
 // Display...), but pptxgenjs can't embed fonts in the .pptx file — PowerPoint
 // falls back to whatever's installed on the viewer's machine, which is
@@ -75,7 +102,7 @@ function addFrame(slide: any, framId: string | undefined, theme: Theme, accent: 
   });
 }
 
-async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string) {
+async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string, logoDataUrl?: string) {
   const s = pptx.addSlide();
   addBackground(s, theme);
   const textColor = hex(theme.colors.text);
@@ -87,15 +114,23 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
 
   addFrame(s, slide.frame, theme, accent);
 
+  if (logoDataUrl) {
+    s.addImage({
+      data: logoDataUrl,
+      x: PPTX_W - 1.3,
+      y: PPTX_H - 0.55,
+      w: 1.1,
+      h: 0.4,
+      sizing: { type: "contain", w: 1.1, h: 0.4 },
+    });
+  }
+
   switch (slide.layout) {
     case "title": {
       s.background = { color: primary };
       await addFooterIcon(s, slide.icon, theme.colors.background);
       s.addText(slide.title || "", {
-        x: 0.6,
-        y: 2.0,
-        w: 8.8,
-        h: 1.4,
+        ...box(slide, "title", { x: 0.6, y: 2.0, w: 8.8, h: 1.4 }),
         fontSize: 40,
         bold: true,
         color: hex(theme.colors.background),
@@ -104,10 +139,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
       });
       if (slide.subtitle) {
         s.addText(slide.subtitle, {
-          x: 0.6,
-          y: 3.3,
-          w: 8.8,
-          h: 1,
+          ...box(slide, "subtitle", { x: 0.6, y: 3.3, w: 8.8, h: 1 }),
           fontSize: 18,
           color: hex(theme.colors.background),
           fontFace: bodyFont,
@@ -120,10 +152,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
       s.background = { color: accentHex };
       s.addShape("rect", { x: 0, y: 2.55, w: 1.6, h: 0.08, fill: { color: primary } });
       s.addText(slide.title || "", {
-        x: 0.6,
-        y: 2.0,
-        w: 8.8,
-        h: 1.2,
+        ...box(slide, "title", { x: 0.6, y: 2.0, w: 8.8, h: 1.2 }),
         fontSize: 34,
         bold: true,
         color: hex(theme.colors.text),
@@ -137,10 +166,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
       // match the flexbox row alignment used in the web preview.
       if (hasIcon) await addFooterIcon(s, slide.icon, accent, { x: 0.6, y: 0.625 });
       s.addText(slide.title || "", {
-        x: hasIcon ? 1.3 : 0.6,
-        y: 0.55,
-        w: hasIcon ? 8.1 : 8.8,
-        h: 0.7,
+        ...box(slide, "header", { x: hasIcon ? 1.3 : 0.6, y: 0.55, w: hasIcon ? 8.1 : 8.8, h: 0.7 }),
         fontSize: 20,
         bold: true,
         color: textColor,
@@ -152,10 +178,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         s.addText(
           slide.bullets.map((b) => ({ text: b, options: { bullet: { code: "2022" }, breakLine: true } })),
           {
-            x: 0.7,
-            y: 1.75,
-            w: 8.6,
-            h: 3.4,
+            ...box(slide, "bullets", { x: 0.7, y: 1.75, w: 8.6, h: 3.4 }),
             fontSize: 18,
             paraSpaceAfter: 14,
             color: textColor,
@@ -168,10 +191,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
     }
     case "two-column": {
       s.addText(slide.title || "", {
-        x: 0.6,
-        y: 0.5,
-        w: 8.8,
-        h: 0.7,
+        ...box(slide, "title", { x: 0.6, y: 0.5, w: 8.8, h: 0.7 }),
         fontSize: 24,
         bold: true,
         color: textColor,
@@ -182,10 +202,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         s.addText(
           slide.leftBullets.map((b) => ({ text: b, options: { bullet: { code: "2022" }, breakLine: true } })),
           {
-            x: 0.6,
-            y: 1.7,
-            w: 4.2,
-            h: 3.4,
+            ...box(slide, "leftBullets", { x: 0.6, y: 1.7, w: 4.2, h: 3.4 }),
             fontSize: 16,
             paraSpaceAfter: 10,
             color: textColor,
@@ -198,10 +215,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         s.addText(
           slide.rightBullets.map((b) => ({ text: b, options: { bullet: { code: "2022" }, breakLine: true } })),
           {
-            x: 5.2,
-            y: 1.7,
-            w: 4.2,
-            h: 3.4,
+            ...box(slide, "rightBullets", { x: 5.2, y: 1.7, w: 4.2, h: 3.4 }),
             fontSize: 16,
             paraSpaceAfter: 10,
             color: textColor,
@@ -221,10 +235,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
     }
     case "quote": {
       s.addText(`“${slide.body || ""}”`, {
-        x: 1,
-        y: 1.8,
-        w: 8,
-        h: 2,
+        ...box(slide, "body", { x: 1, y: 1.8, w: 8, h: 2 }),
         fontSize: 26,
         italic: true,
         color: textColor,
@@ -233,10 +244,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
       });
       if (slide.quoteAuthor) {
         s.addText(`— ${slide.quoteAuthor}`, {
-          x: 1,
-          y: 3.9,
-          w: 8,
-          h: 0.5,
+          ...box(slide, "quoteAuthor", { x: 1, y: 3.9, w: 8, h: 0.5 }),
           fontSize: 16,
           color: mutedColor,
           fontFace: bodyFont,
@@ -247,10 +255,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
     }
     case "chart": {
       s.addText(slide.title || "", {
-        x: 0.6,
-        y: 0.4,
-        w: 8.8,
-        h: 0.7,
+        ...box(slide, "title", { x: 0.6, y: 0.4, w: 8.8, h: 0.7 }),
         fontSize: 22,
         bold: true,
         color: textColor,
@@ -307,10 +312,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         }
       }
       s.addText(slide.title || "", {
-        x: 4.0,
-        y: 1.5,
-        w: 5.4,
-        h: 0.8,
+        ...box(slide, "title", { x: 4.0, y: 1.5, w: 5.4, h: 0.8 }),
         fontSize: 22,
         bold: true,
         color: textColor,
@@ -318,10 +320,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
       });
       s.addShape("rect", { x: 4.02, y: 2.25, w: 0.55, h: 0.06, fill: { color: accentHex } });
       s.addText(slide.body || "", {
-        x: 4.0,
-        y: 2.5,
-        w: 5.4,
-        h: 2.6,
+        ...box(slide, "body", { x: 4.0, y: 2.5, w: 5.4, h: 2.6 }),
         fontSize: 16,
         color: textColor,
         fontFace: bodyFont,
@@ -330,10 +329,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
     }
     case "diagram": {
       s.addText(slide.title || "", {
-        x: 0.6,
-        y: 0.4,
-        w: 8.8,
-        h: 0.7,
+        ...box(slide, "title", { x: 0.6, y: 0.4, w: 8.8, h: 0.7 }),
         fontSize: 22,
         bold: true,
         color: textColor,
@@ -375,10 +371,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
     }
     case "agenda": {
       s.addText(slide.title || "", {
-        x: 0.6,
-        y: 0.5,
-        w: 8.8,
-        h: 0.7,
+        ...box(slide, "title", { x: 0.6, y: 0.5, w: 8.8, h: 0.7 }),
         fontSize: 26,
         bold: true,
         color: textColor,
@@ -386,12 +379,12 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
       });
       s.addShape("rect", { x: 0.62, y: 1.25, w: 0.55, h: 0.06, fill: { color: accentHex } });
       const items = slide.bullets ?? [];
-      const startY = 1.6;
-      const rowH = Math.min(0.85, 3.6 / Math.max(items.length, 1));
+      const listBox = box(slide, "bullets", { x: 0.6, y: 1.6, w: 8.8, h: 3.6 });
+      const rowH = Math.min(0.85, listBox.h / Math.max(items.length, 1));
       items.forEach((item, i) => {
-        const y = startY + i * rowH;
+        const y = listBox.y + i * rowH;
         s.addText(String(i + 1).padStart(2, "0"), {
-          x: 0.6,
+          x: listBox.x,
           y,
           w: 0.9,
           h: rowH,
@@ -402,9 +395,9 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
           valign: "middle",
         });
         s.addText(item, {
-          x: 1.6,
+          x: listBox.x + 1.0,
           y,
-          w: 7.6,
+          w: listBox.w - 1.0,
           h: rowH,
           fontSize: 17,
           color: textColor,
@@ -413,9 +406,9 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         });
         if (i < items.length - 1) {
           s.addShape("line", {
-            x: 0.6,
+            x: listBox.x,
             y: y + rowH,
-            w: 8.6,
+            w: listBox.w,
             h: 0,
             line: { color: mutedColor, width: 0.5, dashType: "dash" },
           });
@@ -427,10 +420,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
       s.background = { color: primary };
       if (slide.title) {
         s.addText(slide.title, {
-          x: 0.6,
-          y: 0.5,
-          w: 8.8,
-          h: 0.6,
+          ...box(slide, "title", { x: 0.6, y: 0.5, w: 8.8, h: 0.6 }),
           fontSize: 16,
           color: hex(theme.colors.background),
           fontFace: bodyFont,
@@ -438,10 +428,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         });
       }
       s.addText(slide.statValue || "", {
-        x: 0.6,
-        y: 1.6,
-        w: 8.8,
-        h: 2.0,
+        ...box(slide, "statValue", { x: 0.6, y: 1.6, w: 8.8, h: 2.0 }),
         fontSize: 96,
         bold: true,
         color: hex(theme.colors.background),
@@ -450,10 +437,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
       });
       if (slide.statLabel) {
         s.addText(slide.statLabel, {
-          x: 0.6,
-          y: 3.6,
-          w: 8.8,
-          h: 0.8,
+          ...box(slide, "statLabel", { x: 0.6, y: 3.6, w: 8.8, h: 0.8 }),
           fontSize: 22,
           color: hex(theme.colors.background),
           fontFace: bodyFont,
@@ -464,10 +448,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
     }
     case "comparison": {
       s.addText(slide.title || "", {
-        x: 0.6,
-        y: 0.4,
-        w: 8.8,
-        h: 0.7,
+        ...box(slide, "title", { x: 0.6, y: 0.4, w: 8.8, h: 0.7 }),
         fontSize: 24,
         bold: true,
         color: textColor,
@@ -483,11 +464,13 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         fill: { color: hex(theme.colors.surface) },
         line: { type: "none" },
       });
+      const leftBox = box(slide, "leftColumn", { x: 0.7, y: 1.5, w: 3.7, h: 3.45 });
+      const leftTitleH = Math.min(0.5, leftBox.h * 0.2);
       s.addText(slide.leftTitle || "", {
-        x: 0.7,
-        y: 1.5,
-        w: 3.7,
-        h: 0.5,
+        x: leftBox.x,
+        y: leftBox.y,
+        w: leftBox.w,
+        h: leftTitleH,
         fontSize: 18,
         bold: true,
         color: accentHex,
@@ -497,10 +480,10 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         s.addText(
           slide.leftBullets.map((b) => ({ text: b, options: { bullet: { code: "2022" }, breakLine: true } })),
           {
-            x: 0.7,
-            y: 2.05,
-            w: 3.7,
-            h: 2.9,
+            x: leftBox.x,
+            y: leftBox.y + leftTitleH + 0.1,
+            w: leftBox.w,
+            h: leftBox.h - leftTitleH - 0.1,
             fontSize: 14,
             paraSpaceAfter: 8,
             color: textColor,
@@ -517,11 +500,13 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         fill: { color: hex(theme.colors.surface) },
         line: { type: "none" },
       });
+      const rightBox = box(slide, "rightColumn", { x: 5.6, y: 1.5, w: 3.7, h: 3.45 });
+      const rightTitleH = Math.min(0.5, rightBox.h * 0.2);
       s.addText(slide.rightTitle || "", {
-        x: 5.6,
-        y: 1.5,
-        w: 3.7,
-        h: 0.5,
+        x: rightBox.x,
+        y: rightBox.y,
+        w: rightBox.w,
+        h: rightTitleH,
         fontSize: 18,
         bold: true,
         color: accentHex,
@@ -531,10 +516,10 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         s.addText(
           slide.rightBullets.map((b) => ({ text: b, options: { bullet: { code: "2022" }, breakLine: true } })),
           {
-            x: 5.6,
-            y: 2.05,
-            w: 3.7,
-            h: 2.9,
+            x: rightBox.x,
+            y: rightBox.y + rightTitleH + 0.1,
+            w: rightBox.w,
+            h: rightBox.h - rightTitleH - 0.1,
             fontSize: 14,
             paraSpaceAfter: 8,
             color: textColor,
@@ -566,10 +551,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
     }
     case "team": {
       s.addText(slide.title || "", {
-        x: 0.6,
-        y: 0.4,
-        w: 8.8,
-        h: 0.7,
+        ...box(slide, "title", { x: 0.6, y: 0.4, w: 8.8, h: 0.7 }),
         fontSize: 24,
         bold: true,
         color: textColor,
@@ -578,15 +560,23 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
       });
       const members = slide.teamMembers ?? [];
       const cols = Math.min(members.length, 4) || 1;
+      const rows = Math.max(1, Math.ceil(members.length / cols));
       const gap = 0.3;
-      const cardW = (9.4 - gap * (cols - 1)) / cols;
-      const startX = (10 - (cardW * cols + gap * (cols - 1))) / 2;
-      const gridY = 1.6;
+      const defaultCardW = (9.4 - gap * (cols - 1)) / cols;
+      const defaultStartX = (10 - (defaultCardW * cols + gap * (cols - 1))) / 2;
+      const gridBox = box(slide, "teamGrid", {
+        x: defaultStartX,
+        y: 1.6,
+        w: defaultCardW * cols + gap * (cols - 1),
+        h: rows * 2.2,
+      });
+      const cardW = (gridBox.w - gap * (cols - 1)) / cols;
+      const rowH = gridBox.h / rows;
       members.forEach((member, i) => {
         const col = i % cols;
         const row = Math.floor(i / cols);
-        const x = startX + col * (cardW + gap);
-        const cy = gridY + row * 2.2;
+        const x = gridBox.x + col * (cardW + gap);
+        const cy = gridBox.y + row * rowH;
         s.addShape("ellipse", {
           x: x + cardW / 2 - 0.5,
           y: cy,
@@ -640,10 +630,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
     case "closing": {
       s.background = { color: primary };
       s.addText(slide.title || "Merci", {
-        x: 0.6,
-        y: 1.6,
-        w: 8.8,
-        h: 1,
+        ...box(slide, "title", { x: 0.6, y: 1.6, w: 8.8, h: 1 }),
         fontSize: 34,
         bold: true,
         color: hex(theme.colors.background),
@@ -653,10 +640,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         s.addText(
           slide.bullets.map((b) => ({ text: b, options: { bullet: { code: "2022" }, breakLine: true } })),
           {
-            x: 0.7,
-            y: 2.7,
-            w: 8.4,
-            h: 2.4,
+            ...box(slide, "bullets", { x: 0.7, y: 2.7, w: 8.4, h: 2.4 }),
             fontSize: 18,
             paraSpaceAfter: 10,
             color: hex(theme.colors.background),
@@ -679,13 +663,14 @@ export async function exportPresentationToPptx(
 ) {
   const PptxGenJS = (await import("pptxgenjs")).default;
   const pptx = new PptxGenJS();
-  pptx.defineLayout({ name: "WIDE", width: 10, height: 5.63 });
+  pptx.defineLayout({ name: "WIDE", width: PPTX_W, height: PPTX_H });
   pptx.layout = "WIDE";
 
   const accent = presentation.paletteOverride?.[0] || theme.colors.accent;
+  const logoDataUrl = presentation.brandKit?.logoDataUrl;
 
   for (const slide of presentation.slides) {
-    await buildSlide(pptx, slide, theme, accent);
+    await buildSlide(pptx, slide, theme, accent, logoDataUrl);
   }
 
   const filename = `${presentation.title || "presentation"}.pptx`.replace(/[\\/:*?"<>|]/g, "");

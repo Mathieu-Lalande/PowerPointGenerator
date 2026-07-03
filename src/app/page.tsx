@@ -6,6 +6,7 @@ import InputStep from "@/components/InputStep";
 import EditorStep from "@/components/EditorStep";
 import type { GenerateRequest, Presentation, Slide } from "@/types/slide";
 import type { DraftEntry } from "@/lib/drafts";
+import { loadGlobalBrandKit } from "@/lib/brand-kit";
 
 type Step = "input" | "editor";
 
@@ -33,6 +34,7 @@ export default function Home() {
         title: data.title,
         themeId: req.themeId,
         language: req.language,
+        brandKit: loadGlobalBrandKit(),
         slides: data.slides.map((s: Slide) => ({ ...s, id: s.id || uuid() })),
       });
       setStep("editor");

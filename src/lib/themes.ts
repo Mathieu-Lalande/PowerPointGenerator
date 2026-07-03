@@ -1,4 +1,6 @@
-import type { Theme } from "@/types/slide";
+import type { BrandKit, Theme } from "@/types/slide";
+
+export const SLIDE_FONT_NAMES = ["Poppins", "Space Grotesk", "Sora", "Playfair Display", "Inter"];
 
 export const THEMES: Theme[] = [
   {
@@ -107,4 +109,19 @@ export const THEMES: Theme[] = [
 
 export function getTheme(id: string): Theme {
   return THEMES.find((t) => t.id === id) ?? THEMES[0];
+}
+
+/** Folds a saved brand kit's colors/fonts into a theme, so it auto-applies everywhere the theme is used. */
+export function applyBrandKit(theme: Theme, brandKit?: BrandKit): Theme {
+  if (!brandKit) return theme;
+  return {
+    ...theme,
+    headingFont: brandKit.headingFont || theme.headingFont,
+    bodyFont: brandKit.bodyFont || theme.bodyFont,
+    colors: {
+      ...theme.colors,
+      primary: brandKit.primaryColor || theme.colors.primary,
+      accent: brandKit.accentColor || theme.colors.accent,
+    },
+  };
 }

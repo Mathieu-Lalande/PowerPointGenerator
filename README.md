@@ -49,6 +49,23 @@ couleurs avant d'exporter un vrai fichier `.pptx` éditable dans PowerPoint.
   reprendre une présentation après un rechargement de page, sans backend ni compte.
 - **Export PDF côté client** : export `.pdf` directement depuis le navigateur (via rendu DOM +
   capture), sans aucun aller-retour serveur.
+- **Positionnement libre des textes** : sur l'aperçu principal, déplacez et redimensionnez
+  librement chaque bloc de texte (titre, puces, légendes...) avec des poignées dédiées ; la
+  position est conservée à l'export `.pptx`. Un bouton discret permet de revenir à la mise en
+  page par défaut du layout.
+- **Banque d'images intégrée** : recherchez une photo libre de droits (Unsplash ou Pexels) sans
+  quitter l'éditeur ni rien uploader — l'image est récupérée côté serveur puis encodée dans la
+  présentation, exactement comme un import manuel.
+- **Import CSV / Excel** : peuplez une slide "Graphique" en important directement un fichier
+  `.csv`/`.xlsx` (1ʳᵉ colonne = catégories, colonnes suivantes = séries), au lieu de saisir les
+  valeurs à la main.
+- **Kit de marque** : enregistrez une fois le logo, la couleur principale, la couleur d'accent et
+  les polices de votre entreprise — ils s'appliquent ensuite automatiquement à toutes vos
+  nouvelles présentations (logo en filigrane sur chaque slide, couleurs et typographies du thème
+  surchargées).
+- **Mode répétition** : dans le mode présentation, activez le chronomètre pour voir le temps
+  passé sur la slide en cours (code couleur selon le rythme) et le temps total, avec un récap du
+  temps passé sur chaque slide déjà vue.
 
 ## Démarrage
 
@@ -72,6 +89,17 @@ L'app fonctionne avec l'un ou l'autre, au choix via `.env.local` :
 Si `GEMINI_API_KEY` est présente, Gemini est utilisé automatiquement. Pour forcer un fournisseur,
 définissez `AI_PROVIDER=gemini` ou `AI_PROVIDER=anthropic`.
 
+### Banque d'images (optionnel)
+
+Pour activer la recherche d'images libres de droits dans l'éditeur (slides "Icône + texte"),
+renseignez l'une de ces clés gratuites dans `.env.local` :
+
+- **Unsplash** : clé sur [unsplash.com/developers](https://unsplash.com/developers) → `UNSPLASH_ACCESS_KEY`.
+- **Pexels** : clé sur [pexels.com/api](https://www.pexels.com/api/) → `PEXELS_API_KEY`.
+
+Sans clé configurée, le bouton "Banque d'images" reste visible mais affiche un message
+explicatif au lieu de résultats.
+
 ### Mode présentation
 
 Depuis l'éditeur, cliquez sur **Présenter** pour lancer le diaporama en plein écran.
@@ -81,6 +109,7 @@ Depuis l'éditeur, cliquez sur **Présenter** pour lancer le diaporama en plein 
 | `→` / `Espace` | Slide suivante |
 | `←` | Slide précédente |
 | `N` | Afficher / masquer les notes orateur |
+| `T` | Activer / désactiver le mode répétition (chronomètre) |
 | `Échap` | Quitter |
 
 ## Stack technique
@@ -92,8 +121,11 @@ Depuis l'éditeur, cliquez sur **Présenter** pour lancer le diaporama en plein 
 - **pptxgenjs** pour la génération du fichier `.pptx` (texte, formes, graphiques natifs)
 - **html2canvas** / **jsPDF** pour l'export PDF côté client (aucun backend)
 - **mermaid** pour le rendu des diagrammes UML/BPMN (aperçu + rasterisation pour l'export)
+- **xlsx (SheetJS)** pour parser les imports CSV/Excel des slides "Graphique" (chargé à la demande)
+- **API Unsplash / Pexels** pour la banque d'images intégrée (clé optionnelle, appel côté serveur)
 - **lucide-react** pour les icônes d'interface
-- **localStorage** pour la sauvegarde automatique et l'historique de brouillons (aucun backend)
+- **localStorage** pour la sauvegarde automatique, l'historique de brouillons et le kit de marque
+  (aucun backend)
 
 ## Structure du projet
 
@@ -102,13 +134,17 @@ src/
   app/
     api/generate/route.ts            # Endpoint qui délègue au fournisseur IA configuré
     api/regenerate-slide/route.ts    # Endpoint qui reformule une seule slide
+    api/search-images/route.ts       # Recherche d'images (Unsplash/Pexels)
+    api/fetch-image/route.ts         # Proxy serveur : image distante -> data URL
     page.tsx                         # Orchestration des étapes (saisie -> édition)
   components/                # UI (saisie, éditeur, aperçu de slide, sélecteurs)
-    PresenterMode.tsx         # Mode présentation plein écran
+    PresenterMode.tsx         # Mode présentation plein écran + mode répétition
     DiagramPreview.tsx        # Rendu d'un diagramme Mermaid dans l'aperçu
     GeneratingOverlay.tsx     # État de chargement animé pendant la génération
     SlideList.tsx             # Liste des slides, réorganisables par glisser-déposer
     Inspector.tsx             # Panneau d'édition du contenu de la slide sélectionnée
+    ImagePicker.tsx           # Modal de recherche d'images libres de droits
+    BrandKitPanel.tsx         # Formulaire du kit de marque (logo, couleurs, polices)
   lib/
     ai-provider.ts           # Sélectionne Claude ou Gemini selon la config
     anthropic.ts             # Appel Claude avec schéma structuré
@@ -117,12 +153,15 @@ src/
     pptx-export.ts           # Génération du fichier .pptx
     pdf-export.ts            # Export PDF côté client (html2canvas + jsPDF)
     drafts.ts                # Sauvegarde automatique + historique de brouillons (localStorage)
+    brand-kit.ts             # Persistance du kit de marque par défaut (localStorage)
     use-undo-redo.ts         # Hook d'historique annuler/rétablir avec regroupement des saisies
+    image-search.ts          # Appels serveur Unsplash/Pexels + proxy de téléchargement
+    parse-chart-file.ts      # Parsing CSV/Excel -> ChartData (xlsx, chargé à la demande)
     diagram.ts               # Rendu Mermaid (UML/BPMN) partagé aperçu + export
     svg-raster.ts            # Rasterisation SVG -> PNG pour l'export PPTX
     fonts.ts                 # Polices Google Fonts chargées + résolution par thème
     themes.ts, palettes.ts, icons.ts, frames.ts   # Bibliothèque de design
-  types/slide.ts              # Modèle de données (Slide, Theme, Chart...)
+  types/slide.ts              # Modèle de données (Slide, Theme, Chart, BrandKit...)
 ```
 
 ## Feuille de route
@@ -135,7 +174,10 @@ src/
 - [x] Annuler / rétablir dans l'éditeur
 - [x] Régénération d'une slide isolée par l'IA
 - [x] Export PDF côté client
-- [ ] Redimensionnement libre des blocs de texte sur l'aperçu (positionnement freeform)
-- [ ] Banque d'images intégrée
+- [x] Redimensionnement libre des blocs de texte sur l'aperçu (positionnement freeform)
+- [x] Banque d'images intégrée (Unsplash/Pexels)
+- [x] Import CSV/Excel pour les slides "Graphique"
+- [x] Kit de marque (logo, couleurs, polices appliqués automatiquement)
+- [x] Mode répétition (chronomètre + minutage par slide)
 - [ ] Comptes utilisateurs et bibliothèque de présentations sauvegardées
 - [ ] Partage de présentation par lien

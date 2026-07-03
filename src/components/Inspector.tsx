@@ -1,11 +1,13 @@
 "use client";
 
-import { useRef } from "react";
-import { Upload, X, Plus, Trash2, Wand2, Loader2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Upload, X, Plus, Trash2, Wand2, Loader2, ImageIcon, FileSpreadsheet } from "lucide-react";
 import type { Slide, SlideLayout, TeamMember } from "@/types/slide";
 import IconPicker from "@/components/IconPicker";
 import FramePicker from "@/components/FramePicker";
+import ImagePicker from "@/components/ImagePicker";
 import { DIAGRAM_TEMPLATES } from "@/lib/diagram";
+import { parseChartFile } from "@/lib/parse-chart-file";
 
 interface Props {
   slide: Slide;
@@ -50,6 +52,22 @@ function textToBullets(t: string) {
 
 export default function Inspector({ slide, onChange, onRegenerate, regenerating }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const chartFileInputRef = useRef<HTMLInputElement>(null);
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [chartImportError, setChartImportError] = useState<string | undefined>();
+
+  async function handleChartFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setChartImportError(undefined);
+    try {
+      const chart = await parseChartFile(file);
+      onChange({ chart });
+    } catch (err) {
+      setChartImportError(err instanceof Error ? err.message : "Fichier illisible.");
+    }
+  }
 
   function updateTeamMember(i: number, patch: Partial<TeamMember>) {
     const next = [...(slide.teamMembers ?? [])];
@@ -318,16 +336,32 @@ export default function Inspector({ slide, onChange, onRegenerate, regenerating 
                 </button>
               </div>
             ) : (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="btn-secondary w-full justify-center py-2 text-xs"
-              >
-                <Upload size={14} /> Importer une image
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="btn-secondary justify-center py-2 text-xs"
+                >
+                  <Upload size={14} /> Importer
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowImagePicker(true)}
+                  className="btn-secondary justify-center py-2 text-xs"
+                >
+                  <ImageIcon size={14} /> Banque d&apos;images
+                </button>
+              </div>
             )}
           </div>
         </>
+      )}
+
+      {showImagePicker && (
+        <ImagePicker
+          onSelect={(dataUrl) => onChange({ imageDataUrl: dataUrl })}
+          onClose={() => setShowImagePicker(false)}
+        />
       )}
 
       {slide.layout === "diagram" && (
@@ -365,6 +399,33 @@ export default function Inspector({ slide, onChange, onRegenerate, regenerating 
             </a>{" "}
             : flowchart, sequenceDiagram, classDiagram...
           </p>
+        </div>
+      )}
+
+      {slide.layout === "chart" && (
+        <div className="space-y-1.5">
+          <input
+            ref={chartFileInputRef}
+            type="file"
+            accept=".csv,.xlsx,.xls"
+            onChange={handleChartFileUpload}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => chartFileInputRef.current?.click()}
+            className="btn-secondary w-full justify-center py-2 text-xs"
+          >
+            <FileSpreadsheet size={14} /> Importer un CSV / Excel
+          </button>
+          <p className="text-[11px] text-white/40">
+            1<sup>re</sup> colonne = catégories, colonnes suivantes = séries (ligne d&apos;en-tête requise).
+          </p>
+          {chartImportError && (
+            <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+              {chartImportError}
+            </p>
+          )}
         </div>
       )}
 
