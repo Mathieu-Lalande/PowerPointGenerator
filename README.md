@@ -33,6 +33,22 @@ couleurs avant d'exporter un vrai fichier `.pptx` éditable dans PowerPoint.
   Display, Sora, Poppins) dans l'aperçu ; l'export `.pptx` utilise des polices équivalentes
   garanties disponibles sous Windows/Mac (Calibri, Georgia, Trebuchet MS...) pour un rendu
   fidèle même sans les polices Google installées.
+- **Nouveaux layouts** : slide "Sommaire" (agenda numéroté), "Chiffre clé" (stat géante),
+  "Comparaison A vs B" (deux colonnes + badge VS) et "Équipe" (fiches nom/rôle) — disponibles
+  à la génération IA comme dans l'éditeur, et exportés nativement en `.pptx`.
+- **Édition inline sur l'aperçu** : cliquez directement sur un texte dans l'aperçu principal
+  pour le modifier sur place (titre, puces, légendes...), sans passer par le panneau de droite.
+- **Glisser-déposer** : réorganisez les slides dans la liste de gauche en les faisant glisser
+  (les flèches ↑/↓ restent disponibles).
+- **Annuler / rétablir** : `Ctrl+Z` / `Ctrl+Y` (ou les boutons dédiés) annulent et rétablissent
+  les modifications de contenu, mise en page et réorganisation.
+- **Régénération IA par slide** : bouton "Régénérer cette slide avec l'IA" dans le panneau de
+  droite pour reformuler uniquement la slide sélectionnée, sans relancer toute la génération.
+- **Sauvegarde automatique locale** : la présentation en cours est sauvegardée dans le
+  `localStorage` du navigateur au fil de l'édition ; un historique de brouillons permet de
+  reprendre une présentation après un rechargement de page, sans backend ni compte.
+- **Export PDF côté client** : export `.pdf` directement depuis le navigateur (via rendu DOM +
+  capture), sans aucun aller-retour serveur.
 
 ## Démarrage
 
@@ -74,26 +90,34 @@ Depuis l'éditeur, cliquez sur **Présenter** pour lancer le diaporama en plein 
 - **@anthropic-ai/sdk** / **@google/generative-ai** pour la génération de contenu (structured output
   via tool-use / function calling)
 - **pptxgenjs** pour la génération du fichier `.pptx` (texte, formes, graphiques natifs)
+- **html2canvas** / **jsPDF** pour l'export PDF côté client (aucun backend)
 - **mermaid** pour le rendu des diagrammes UML/BPMN (aperçu + rasterisation pour l'export)
 - **lucide-react** pour les icônes d'interface
+- **localStorage** pour la sauvegarde automatique et l'historique de brouillons (aucun backend)
 
 ## Structure du projet
 
 ```
 src/
   app/
-    api/generate/route.ts   # Endpoint qui délègue au fournisseur IA configuré
-    page.tsx                # Orchestration des étapes (saisie -> édition)
+    api/generate/route.ts            # Endpoint qui délègue au fournisseur IA configuré
+    api/regenerate-slide/route.ts    # Endpoint qui reformule une seule slide
+    page.tsx                         # Orchestration des étapes (saisie -> édition)
   components/                # UI (saisie, éditeur, aperçu de slide, sélecteurs)
     PresenterMode.tsx         # Mode présentation plein écran
     DiagramPreview.tsx        # Rendu d'un diagramme Mermaid dans l'aperçu
     GeneratingOverlay.tsx     # État de chargement animé pendant la génération
+    SlideList.tsx             # Liste des slides, réorganisables par glisser-déposer
+    Inspector.tsx             # Panneau d'édition du contenu de la slide sélectionnée
   lib/
     ai-provider.ts           # Sélectionne Claude ou Gemini selon la config
     anthropic.ts             # Appel Claude avec schéma structuré
     gemini.ts                # Appel Gemini avec schéma structuré
     presentation-prompt.ts   # Prompt partagé entre les deux fournisseurs
     pptx-export.ts           # Génération du fichier .pptx
+    pdf-export.ts            # Export PDF côté client (html2canvas + jsPDF)
+    drafts.ts                # Sauvegarde automatique + historique de brouillons (localStorage)
+    use-undo-redo.ts         # Hook d'historique annuler/rétablir avec regroupement des saisies
     diagram.ts               # Rendu Mermaid (UML/BPMN) partagé aperçu + export
     svg-raster.ts            # Rasterisation SVG -> PNG pour l'export PPTX
     fonts.ts                 # Polices Google Fonts chargées + résolution par thème
@@ -105,7 +129,13 @@ src/
 
 - [x] Génération de diagrammes UML/BPMN à partir de texte (Mermaid)
 - [x] Import d'images / logos
+- [x] Édition inline directement sur l'aperçu (texte cliquable, sur place)
+- [x] Sauvegarde automatique locale + historique de brouillons
+- [x] Glisser-déposer pour réorganiser les slides
+- [x] Annuler / rétablir dans l'éditeur
+- [x] Régénération d'une slide isolée par l'IA
+- [x] Export PDF côté client
+- [ ] Redimensionnement libre des blocs de texte sur l'aperçu (positionnement freeform)
 - [ ] Banque d'images intégrée
-- [ ] Édition inline directement sur l'aperçu (drag & drop, redimensionnement)
 - [ ] Comptes utilisateurs et bibliothèque de présentations sauvegardées
-- [ ] Export PDF et partage par lien
+- [ ] Partage de présentation par lien

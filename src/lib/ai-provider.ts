@@ -1,4 +1,4 @@
-import type { GenerateRequest, GenerateResponse } from "@/types/slide";
+import type { GenerateRequest, GenerateResponse, Slide, Theme } from "@/types/slide";
 import { sanitizeSlides } from "@/lib/sanitize-slides";
 
 type AiProvider = "anthropic" | "gemini";
@@ -19,4 +19,15 @@ export async function generatePresentation(
       : await (await import("@/lib/anthropic")).generatePresentation(req);
 
   return { ...result, slides: sanitizeSlides(result.slides) };
+}
+
+export async function regenerateSlide(
+  slide: Slide,
+  theme: Theme,
+  language: string,
+  instruction?: string
+): Promise<Slide> {
+  return resolveProvider() === "gemini"
+    ? await (await import("@/lib/gemini")).regenerateSlide(slide, theme, language, instruction)
+    : await (await import("@/lib/anthropic")).regenerateSlide(slide, theme, language, instruction);
 }

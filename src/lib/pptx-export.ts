@@ -373,6 +373,270 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
       }
       break;
     }
+    case "agenda": {
+      s.addText(slide.title || "", {
+        x: 0.6,
+        y: 0.5,
+        w: 8.8,
+        h: 0.7,
+        fontSize: 26,
+        bold: true,
+        color: textColor,
+        fontFace: headingFont,
+      });
+      s.addShape("rect", { x: 0.62, y: 1.25, w: 0.55, h: 0.06, fill: { color: accentHex } });
+      const items = slide.bullets ?? [];
+      const startY = 1.6;
+      const rowH = Math.min(0.85, 3.6 / Math.max(items.length, 1));
+      items.forEach((item, i) => {
+        const y = startY + i * rowH;
+        s.addText(String(i + 1).padStart(2, "0"), {
+          x: 0.6,
+          y,
+          w: 0.9,
+          h: rowH,
+          fontSize: 22,
+          bold: true,
+          color: accentHex,
+          fontFace: headingFont,
+          valign: "middle",
+        });
+        s.addText(item, {
+          x: 1.6,
+          y,
+          w: 7.6,
+          h: rowH,
+          fontSize: 17,
+          color: textColor,
+          fontFace: bodyFont,
+          valign: "middle",
+        });
+        if (i < items.length - 1) {
+          s.addShape("line", {
+            x: 0.6,
+            y: y + rowH,
+            w: 8.6,
+            h: 0,
+            line: { color: mutedColor, width: 0.5, dashType: "dash" },
+          });
+        }
+      });
+      break;
+    }
+    case "stat": {
+      s.background = { color: primary };
+      if (slide.title) {
+        s.addText(slide.title, {
+          x: 0.6,
+          y: 0.5,
+          w: 8.8,
+          h: 0.6,
+          fontSize: 16,
+          color: hex(theme.colors.background),
+          fontFace: bodyFont,
+          align: "center",
+        });
+      }
+      s.addText(slide.statValue || "", {
+        x: 0.6,
+        y: 1.6,
+        w: 8.8,
+        h: 2.0,
+        fontSize: 96,
+        bold: true,
+        color: hex(theme.colors.background),
+        fontFace: headingFont,
+        align: "center",
+      });
+      if (slide.statLabel) {
+        s.addText(slide.statLabel, {
+          x: 0.6,
+          y: 3.6,
+          w: 8.8,
+          h: 0.8,
+          fontSize: 22,
+          color: hex(theme.colors.background),
+          fontFace: bodyFont,
+          align: "center",
+        });
+      }
+      break;
+    }
+    case "comparison": {
+      s.addText(slide.title || "", {
+        x: 0.6,
+        y: 0.4,
+        w: 8.8,
+        h: 0.7,
+        fontSize: 24,
+        bold: true,
+        color: textColor,
+        fontFace: headingFont,
+        align: "center",
+      });
+      s.addShape("roundRect", {
+        x: 0.5,
+        y: 1.3,
+        w: 4.1,
+        h: 3.8,
+        rectRadius: 0.1,
+        fill: { color: hex(theme.colors.surface) },
+        line: { type: "none" },
+      });
+      s.addText(slide.leftTitle || "", {
+        x: 0.7,
+        y: 1.5,
+        w: 3.7,
+        h: 0.5,
+        fontSize: 18,
+        bold: true,
+        color: accentHex,
+        fontFace: headingFont,
+      });
+      if (slide.leftBullets?.length) {
+        s.addText(
+          slide.leftBullets.map((b) => ({ text: b, options: { bullet: { code: "2022" }, breakLine: true } })),
+          {
+            x: 0.7,
+            y: 2.05,
+            w: 3.7,
+            h: 2.9,
+            fontSize: 14,
+            paraSpaceAfter: 8,
+            color: textColor,
+            fontFace: bodyFont,
+          }
+        );
+      }
+      s.addShape("roundRect", {
+        x: 5.4,
+        y: 1.3,
+        w: 4.1,
+        h: 3.8,
+        rectRadius: 0.1,
+        fill: { color: hex(theme.colors.surface) },
+        line: { type: "none" },
+      });
+      s.addText(slide.rightTitle || "", {
+        x: 5.6,
+        y: 1.5,
+        w: 3.7,
+        h: 0.5,
+        fontSize: 18,
+        bold: true,
+        color: accentHex,
+        fontFace: headingFont,
+      });
+      if (slide.rightBullets?.length) {
+        s.addText(
+          slide.rightBullets.map((b) => ({ text: b, options: { bullet: { code: "2022" }, breakLine: true } })),
+          {
+            x: 5.6,
+            y: 2.05,
+            w: 3.7,
+            h: 2.9,
+            fontSize: 14,
+            paraSpaceAfter: 8,
+            color: textColor,
+            fontFace: bodyFont,
+          }
+        );
+      }
+      s.addShape("ellipse", {
+        x: 4.55,
+        y: 2.95,
+        w: 0.9,
+        h: 0.9,
+        fill: { color: accentHex },
+        line: { type: "none" },
+      });
+      s.addText("VS", {
+        x: 4.55,
+        y: 2.95,
+        w: 0.9,
+        h: 0.9,
+        fontSize: 16,
+        bold: true,
+        color: hex(theme.colors.background),
+        align: "center",
+        valign: "middle",
+        fontFace: headingFont,
+      });
+      break;
+    }
+    case "team": {
+      s.addText(slide.title || "", {
+        x: 0.6,
+        y: 0.4,
+        w: 8.8,
+        h: 0.7,
+        fontSize: 24,
+        bold: true,
+        color: textColor,
+        fontFace: headingFont,
+        align: "center",
+      });
+      const members = slide.teamMembers ?? [];
+      const cols = Math.min(members.length, 4) || 1;
+      const gap = 0.3;
+      const cardW = (9.4 - gap * (cols - 1)) / cols;
+      const startX = (10 - (cardW * cols + gap * (cols - 1))) / 2;
+      const gridY = 1.6;
+      members.forEach((member, i) => {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const x = startX + col * (cardW + gap);
+        const cy = gridY + row * 2.2;
+        s.addShape("ellipse", {
+          x: x + cardW / 2 - 0.5,
+          y: cy,
+          w: 1,
+          h: 1,
+          fill: { color: hex(theme.colors.surface) },
+          line: { color: accentHex, width: 1.5 },
+        });
+        const initials = (member.name || "?")
+          .split(" ")
+          .map((p) => p[0])
+          .slice(0, 2)
+          .join("")
+          .toUpperCase();
+        s.addText(initials, {
+          x: x + cardW / 2 - 0.5,
+          y: cy,
+          w: 1,
+          h: 1,
+          fontSize: 20,
+          bold: true,
+          color: accentHex,
+          align: "center",
+          valign: "middle",
+          fontFace: headingFont,
+        });
+        s.addText(member.name || "", {
+          x,
+          y: cy + 1.1,
+          w: cardW,
+          h: 0.4,
+          fontSize: 15,
+          bold: true,
+          color: textColor,
+          align: "center",
+          fontFace: headingFont,
+        });
+        s.addText(member.role || "", {
+          x,
+          y: cy + 1.5,
+          w: cardW,
+          h: 0.4,
+          fontSize: 12,
+          color: mutedColor,
+          align: "center",
+          fontFace: bodyFont,
+        });
+      });
+      break;
+    }
     case "closing": {
       s.background = { color: primary };
       s.addText(slide.title || "Merci", {

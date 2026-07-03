@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Lightbulb,
   NotebookPen,
@@ -14,16 +14,30 @@ import {
   Shapes,
   BarChart3,
   Workflow,
+  History,
+  X,
 } from "lucide-react";
 import clsx from "clsx";
 import ThemeGrid from "@/components/ThemeGrid";
 import GeneratingOverlay from "@/components/GeneratingOverlay";
 import type { GenerateRequest } from "@/types/slide";
+import { listDrafts, deleteDraft, type DraftEntry } from "@/lib/drafts";
 
 interface Props {
   onGenerate: (req: GenerateRequest) => void;
   loading: boolean;
   error?: string;
+  onResumeDraft?: (draft: DraftEntry) => void;
+}
+
+function formatRelativeTime(ts: number): string {
+  const diffMin = Math.round((Date.now() - ts) / 60000);
+  if (diffMin < 1) return "à l'instant";
+  if (diffMin < 60) return `il y a ${diffMin} min`;
+  const diffH = Math.round(diffMin / 60);
+  if (diffH < 24) return `il y a ${diffH} h`;
+  const diffD = Math.round(diffH / 24);
+  return `il y a ${diffD} j`;
 }
 
 const KIND_OPTIONS: { id: GenerateRequest["inputKind"]; label: string; icon: any; hint: string }[] = [
@@ -69,12 +83,17 @@ Le modèle économique serait freemium : gratuit avec pubs, ou 4,99€/mois sans
 
 Un tiers de la nourriture produite dans le monde est gaspillée chaque année, et une famille française jette en moyenne 30kg de nourriture par an. Le marché des applications anti-gaspi a progressé de 45% en 2024, 60% en 2025 et devrait atteindre +80% en 2026.`;
 
-export default function InputStep({ onGenerate, loading, error }: Props) {
+export default function InputStep({ onGenerate, loading, error, onResumeDraft }: Props) {
   const [sourceText, setSourceText] = useState(DEFAULT_SOURCE_TEXT);
   const [inputKind, setInputKind] = useState<GenerateRequest["inputKind"]>("idea");
   const [themeId, setThemeId] = useState("midnight-tech");
   const [slideCount, setSlideCount] = useState(8);
   const [language, setLanguage] = useState("français");
+  const [drafts, setDrafts] = useState<DraftEntry[]>([]);
+
+  useEffect(() => {
+    setDrafts(listDrafts());
+  }, []);
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-16">
@@ -108,6 +127,41 @@ export default function InputStep({ onGenerate, loading, error }: Props) {
           })}
         </div>
       </div>
+
+      {drafts.length > 0 && !loading && (
+        <div className="mx-auto mb-10 max-w-4xl">
+          <p className="mb-3 flex items-center justify-center gap-1.5 text-xs font-medium text-white/50">
+            <History size={14} /> Reprendre où vous en étiez
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {drafts.map((d) => (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => onResumeDraft?.(d)}
+                className="group relative flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2 text-left text-xs transition hover:border-accent/50"
+              >
+                <span className="max-w-[180px] truncate font-medium text-white">{d.title}</span>
+                <span className="text-white/40">
+                  {d.slideCount} slides · {formatRelativeTime(d.updatedAt)}
+                </span>
+                <span
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteDraft(d.id);
+                    setDrafts((prev) => prev.filter((x) => x.id !== d.id));
+                  }}
+                  className="rounded p-0.5 text-white/30 opacity-0 transition hover:bg-white/10 hover:text-red-300 group-hover:opacity-100"
+                >
+                  <X size={12} />
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto mb-14 grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4">
         {STEPS.map((step) => {

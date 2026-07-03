@@ -1,8 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import { Upload, X } from "lucide-react";
-import type { Slide, SlideLayout } from "@/types/slide";
+import { Upload, X, Plus, Trash2, Wand2, Loader2 } from "lucide-react";
+import type { Slide, SlideLayout, TeamMember } from "@/types/slide";
 import IconPicker from "@/components/IconPicker";
 import FramePicker from "@/components/FramePicker";
 import { DIAGRAM_TEMPLATES } from "@/lib/diagram";
@@ -10,6 +10,8 @@ import { DIAGRAM_TEMPLATES } from "@/lib/diagram";
 interface Props {
   slide: Slide;
   onChange: (patch: Partial<Slide>) => void;
+  onRegenerate?: () => void;
+  regenerating?: boolean;
 }
 
 const LAYOUT_LABELS: Record<SlideLayout, string> = {
@@ -21,6 +23,10 @@ const LAYOUT_LABELS: Record<SlideLayout, string> = {
   chart: "Graphique",
   "image-text": "Icône + texte",
   diagram: "Diagramme (UML/BPMN)",
+  agenda: "Sommaire",
+  stat: "Chiffre clé",
+  comparison: "Comparaison (A vs B)",
+  team: "Équipe",
   closing: "Clôture",
 };
 
@@ -42,8 +48,20 @@ function textToBullets(t: string) {
   return t.split("\n").map((s) => s.trim()).filter(Boolean);
 }
 
-export default function Inspector({ slide, onChange }: Props) {
+export default function Inspector({ slide, onChange, onRegenerate, regenerating }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function updateTeamMember(i: number, patch: Partial<TeamMember>) {
+    const next = [...(slide.teamMembers ?? [])];
+    next[i] = { ...next[i], ...patch };
+    onChange({ teamMembers: next });
+  }
+  function addTeamMember() {
+    onChange({ teamMembers: [...(slide.teamMembers ?? []), { name: "", role: "" }] });
+  }
+  function removeTeamMember(i: number) {
+    onChange({ teamMembers: (slide.teamMembers ?? []).filter((_, idx) => idx !== i) });
+  }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -59,6 +77,25 @@ export default function Inspector({ slide, onChange }: Props) {
 
   return (
     <div className="space-y-5">
+      {onRegenerate && (
+        <button
+          type="button"
+          onClick={onRegenerate}
+          disabled={regenerating}
+          className="btn-secondary w-full justify-center py-2 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {regenerating ? (
+            <>
+              <Loader2 size={14} className="animate-spin" /> Régénération...
+            </>
+          ) : (
+            <>
+              <Wand2 size={14} /> Régénérer cette slide avec l&apos;IA
+            </>
+          )}
+        </button>
+      )}
+
       <div>
         <label className="mb-1.5 block text-xs font-medium text-white/50">Layout</label>
         <select
@@ -96,7 +133,7 @@ export default function Inspector({ slide, onChange }: Props) {
         </div>
       )}
 
-      {(slide.layout === "title-bullets" || slide.layout === "closing") && (
+      {(slide.layout === "title-bullets" || slide.layout === "closing" || slide.layout === "agenda") && (
         <div>
           <label className="mb-1.5 block text-xs font-medium text-white/50">
             Puces (une par ligne)
@@ -127,6 +164,98 @@ export default function Inspector({ slide, onChange }: Props) {
               className="input-field h-28 resize-none"
             />
           </div>
+        </div>
+      )}
+
+      {slide.layout === "comparison" && (
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-white/50">Titre gauche</label>
+            <input
+              value={slide.leftTitle ?? ""}
+              onChange={(e) => onChange({ leftTitle: e.target.value })}
+              className="input-field"
+            />
+            <label className="mb-1.5 mt-2 block text-xs font-medium text-white/50">Puces gauche</label>
+            <textarea
+              value={bulletsToText(slide.leftBullets)}
+              onChange={(e) => onChange({ leftBullets: textToBullets(e.target.value) })}
+              className="input-field h-28 resize-none"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-white/50">Titre droit</label>
+            <input
+              value={slide.rightTitle ?? ""}
+              onChange={(e) => onChange({ rightTitle: e.target.value })}
+              className="input-field"
+            />
+            <label className="mb-1.5 mt-2 block text-xs font-medium text-white/50">Puces droite</label>
+            <textarea
+              value={bulletsToText(slide.rightBullets)}
+              onChange={(e) => onChange({ rightBullets: textToBullets(e.target.value) })}
+              className="input-field h-28 resize-none"
+            />
+          </div>
+        </div>
+      )}
+
+      {slide.layout === "stat" && (
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-white/50">Chiffre</label>
+            <input
+              value={slide.statValue ?? ""}
+              onChange={(e) => onChange({ statValue: e.target.value })}
+              className="input-field"
+              placeholder="87%"
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-white/50">Libellé</label>
+            <input
+              value={slide.statLabel ?? ""}
+              onChange={(e) => onChange({ statLabel: e.target.value })}
+              className="input-field"
+              placeholder="de satisfaction client"
+            />
+          </div>
+        </div>
+      )}
+
+      {slide.layout === "team" && (
+        <div className="space-y-2">
+          <label className="mb-1.5 block text-xs font-medium text-white/50">Membres</label>
+          {(slide.teamMembers ?? []).map((m, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                value={m.name}
+                onChange={(e) => updateTeamMember(i, { name: e.target.value })}
+                placeholder="Nom"
+                className="input-field"
+              />
+              <input
+                value={m.role}
+                onChange={(e) => updateTeamMember(i, { role: e.target.value })}
+                placeholder="Rôle"
+                className="input-field"
+              />
+              <button
+                type="button"
+                onClick={() => removeTeamMember(i)}
+                className="shrink-0 rounded-lg p-2 text-white/40 transition hover:bg-white/5 hover:text-red-400"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addTeamMember}
+            className="btn-secondary w-full justify-center py-2 text-xs"
+          >
+            <Plus size={14} /> Ajouter un membre
+          </button>
         </div>
       )}
 

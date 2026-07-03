@@ -20,6 +20,14 @@ export function sanitizeSlides(slides: Slide[]): Slide[] {
         return Boolean(s.leftBullets?.length || s.rightBullets?.length);
       case "image-text":
         return Boolean(s.body?.trim());
+      case "agenda":
+        return Boolean(s.bullets?.length);
+      case "stat":
+        return Boolean(s.statValue?.trim());
+      case "comparison":
+        return Boolean(s.leftBullets?.length || s.rightBullets?.length);
+      case "team":
+        return Boolean(s.teamMembers?.length);
       default:
         return true;
     }
