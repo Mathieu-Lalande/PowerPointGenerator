@@ -1,4 +1,5 @@
 import type { GenerateRequest, GenerateResponse } from "@/types/slide";
+import { sanitizeSlides } from "@/lib/sanitize-slides";
 
 type AiProvider = "anthropic" | "gemini";
 
@@ -12,10 +13,10 @@ function resolveProvider(): AiProvider {
 export async function generatePresentation(
   req: GenerateRequest
 ): Promise<GenerateResponse> {
-  if (resolveProvider() === "gemini") {
-    const { generatePresentation: generate } = await import("@/lib/gemini");
-    return generate(req);
-  }
-  const { generatePresentation: generate } = await import("@/lib/anthropic");
-  return generate(req);
+  const result =
+    resolveProvider() === "gemini"
+      ? await (await import("@/lib/gemini")).generatePresentation(req)
+      : await (await import("@/lib/anthropic")).generatePresentation(req);
+
+  return { ...result, slides: sanitizeSlides(result.slides) };
 }

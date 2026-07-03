@@ -42,11 +42,19 @@ function addBackground(slide: any, theme: Theme) {
   slide.background = { color: hex(theme.colors.background) };
 }
 
-async function addFooterIcon(slide: any, icon: string | undefined, color: string) {
+async function addFooterIcon(
+  slide: any,
+  icon: string | undefined,
+  color: string,
+  pos: { x?: number; y?: number; size?: number } = {}
+) {
   if (!icon) return;
+  const size = pos.size ?? 0.55;
+  const x = pos.x ?? 0.5;
+  const y = pos.y ?? 0.45;
   const dataUrl = await iconToPngDataUrl(icon, color, 128);
   if (!dataUrl) return;
-  slide.addImage({ data: dataUrl, x: 0.5, y: 0.45, w: 0.55, h: 0.55 });
+  slide.addImage({ data: dataUrl, x, y, w: size, h: size });
 }
 
 function addFrame(slide: any, framId: string | undefined, theme: Theme, accent: string) {
@@ -125,7 +133,9 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
     }
     case "title-bullets": {
       const hasIcon = Boolean(slide.icon);
-      if (hasIcon) await addFooterIcon(s, slide.icon, accent);
+      // Center the icon on the title box's vertical middle (y:0.55, h:0.7) to
+      // match the flexbox row alignment used in the web preview.
+      if (hasIcon) await addFooterIcon(s, slide.icon, accent, { x: 0.6, y: 0.625 });
       s.addText(slide.title || "", {
         x: hasIcon ? 1.3 : 0.6,
         y: 0.55,
