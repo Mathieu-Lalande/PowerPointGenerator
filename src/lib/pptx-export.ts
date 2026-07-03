@@ -115,17 +115,20 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         fontFace: theme.headingFont,
         valign: "middle",
       });
+      s.addShape("rect", { x: 0.65, y: 1.3, w: 0.55, h: 0.06, fill: { color: accentHex } });
       if (slide.bullets?.length) {
         s.addText(
           slide.bullets.map((b) => ({ text: b, options: { bullet: { code: "2022" }, breakLine: true } })),
           {
             x: 0.7,
-            y: 1.6,
+            y: 1.75,
             w: 8.6,
-            h: 3.5,
-            fontSize: 16,
+            h: 3.4,
+            fontSize: 18,
+            paraSpaceAfter: 14,
             color: textColor,
             fontFace: theme.bodyFont,
+            valign: "middle",
           }
         );
       }
@@ -134,31 +137,52 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
     case "two-column": {
       s.addText(slide.title || "", {
         x: 0.6,
-        y: 0.55,
+        y: 0.5,
         w: 8.8,
-        h: 0.8,
+        h: 0.7,
         fontSize: 24,
         bold: true,
         color: textColor,
         fontFace: theme.headingFont,
       });
+      s.addShape("rect", { x: 0.62, y: 1.2, w: 0.55, h: 0.06, fill: { color: accentHex } });
       if (slide.leftBullets?.length) {
         s.addText(
           slide.leftBullets.map((b) => ({ text: b, options: { bullet: { code: "2022" }, breakLine: true } })),
-          { x: 0.6, y: 1.6, w: 4.2, h: 3.5, fontSize: 15, color: textColor, fontFace: theme.bodyFont }
+          {
+            x: 0.6,
+            y: 1.7,
+            w: 4.2,
+            h: 3.4,
+            fontSize: 16,
+            paraSpaceAfter: 10,
+            color: textColor,
+            fontFace: theme.bodyFont,
+            valign: "middle",
+          }
         );
       }
       if (slide.rightBullets?.length) {
         s.addText(
           slide.rightBullets.map((b) => ({ text: b, options: { bullet: { code: "2022" }, breakLine: true } })),
-          { x: 5.2, y: 1.6, w: 4.2, h: 3.5, fontSize: 15, color: textColor, fontFace: theme.bodyFont }
+          {
+            x: 5.2,
+            y: 1.7,
+            w: 4.2,
+            h: 3.4,
+            fontSize: 16,
+            paraSpaceAfter: 10,
+            color: textColor,
+            fontFace: theme.bodyFont,
+            valign: "middle",
+          }
         );
       }
       s.addShape("line", {
         x: 5.0,
-        y: 1.6,
+        y: 1.7,
         w: 0,
-        h: 3.5,
+        h: 3.4,
         line: { color: mutedColor, width: 0.75 },
       });
       break;
@@ -241,20 +265,21 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
       }
       s.addText(slide.title || "", {
         x: 4.0,
-        y: 1.4,
+        y: 1.5,
         w: 5.4,
-        h: 1,
+        h: 0.8,
         fontSize: 22,
         bold: true,
         color: textColor,
         fontFace: theme.headingFont,
       });
+      s.addShape("rect", { x: 4.02, y: 2.25, w: 0.55, h: 0.06, fill: { color: accentHex } });
       s.addText(slide.body || "", {
         x: 4.0,
-        y: 2.3,
+        y: 2.5,
         w: 5.4,
-        h: 2.8,
-        fontSize: 15,
+        h: 2.6,
+        fontSize: 16,
         color: textColor,
         fontFace: theme.bodyFont,
       });
@@ -280,7 +305,8 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
             y: 2.7,
             w: 8.4,
             h: 2.4,
-            fontSize: 16,
+            fontSize: 18,
+            paraSpaceAfter: 10,
             color: hex(theme.colors.background),
             fontFace: theme.bodyFont,
           }

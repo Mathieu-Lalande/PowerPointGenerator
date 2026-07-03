@@ -19,8 +19,14 @@ const KIND_OPTIONS: { id: GenerateRequest["inputKind"]; label: string; icon: any
   { id: "raw", label: "Texte libre", icon: FileText, hint: "Article, document" },
 ];
 
+const DEFAULT_SOURCE_TEXT = `Je voudrais lancer une application mobile qui aide les gens à réduire leur gaspillage alimentaire. L'idée : l'utilisateur scanne ses courses avec la caméra du téléphone, l'app détecte les dates de péremption et envoie des rappels avant que les produits ne périment. Elle propose aussi des recettes adaptées aux ingrédients qui vont bientôt expirer.
+
+Le modèle économique serait freemium : gratuit avec pubs, ou 4,99€/mois sans pub avec des fonctionnalités avancées (liste de courses intelligente, statistiques d'économies réalisées). Cible principale : familles urbaines de 25-45 ans soucieuses de leur budget et de l'environnement.
+
+Un tiers de la nourriture produite dans le monde est gaspillée chaque année, et une famille française jette en moyenne 30kg de nourriture par an. Le marché des applications anti-gaspi a progressé de 45% en 2024, 60% en 2025 et devrait atteindre +80% en 2026.`;
+
 export default function InputStep({ onGenerate, loading, error }: Props) {
-  const [sourceText, setSourceText] = useState("");
+  const [sourceText, setSourceText] = useState(DEFAULT_SOURCE_TEXT);
   const [inputKind, setInputKind] = useState<GenerateRequest["inputKind"]>("idea");
   const [themeId, setThemeId] = useState("midnight-tech");
   const [slideCount, setSlideCount] = useState(8);

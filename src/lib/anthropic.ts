@@ -45,9 +45,24 @@ const PRESENTATION_TOOL = {
             },
             title: { type: "string" },
             subtitle: { type: "string" },
-            bullets: { type: "array", items: { type: "string" } },
-            leftBullets: { type: "array", items: { type: "string" } },
-            rightBullets: { type: "array", items: { type: "string" } },
+            bullets: {
+              type: "array",
+              items: { type: "string" },
+              minItems: 4,
+              description: "4 ou 5 bullets informatives (8 à 14 mots chacune), jamais moins de 4.",
+            },
+            leftBullets: {
+              type: "array",
+              items: { type: "string" },
+              minItems: 3,
+              description: "3 à 4 bullets informatives (8 à 14 mots chacune).",
+            },
+            rightBullets: {
+              type: "array",
+              items: { type: "string" },
+              minItems: 3,
+              description: "3 à 4 bullets informatives (8 à 14 mots chacune).",
+            },
             body: { type: "string" },
             quoteAuthor: { type: "string" },
             icon: {

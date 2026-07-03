@@ -117,8 +117,8 @@ export default function EditorStep({ presentation, onChange, onBack }: Props) {
         </div>
       </header>
 
-      <div className="grid flex-1 grid-cols-[220px_1fr_320px] overflow-hidden">
-        <aside className="border-r border-border bg-surface/40 p-3">
+      <div className="grid min-h-0 flex-1 grid-cols-[220px_1fr_320px] overflow-hidden">
+        <aside className="min-h-0 overflow-hidden border-r border-border bg-surface/40 p-3">
           <SlideList
             slides={presentation.slides}
             theme={theme}
@@ -140,7 +140,7 @@ export default function EditorStep({ presentation, onChange, onBack }: Props) {
           )}
         </main>
 
-        <aside className="overflow-y-auto border-l border-border bg-surface/40 p-4">
+        <aside className="min-h-0 overflow-y-auto border-l border-border bg-surface/40 p-4">
           {panel === "theme" && (
             <div>
               <h3 className="mb-3 text-sm font-semibold text-white/80">Choisir un thème</h3>

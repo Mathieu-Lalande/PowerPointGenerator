@@ -30,6 +30,13 @@ const stringEnum = (values: string[]): Schema => ({
 
 const stringArray: Schema = { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } };
 
+const bulletsSchema = (min: number, description: string): Schema => ({
+  type: SchemaType.ARRAY,
+  items: { type: SchemaType.STRING },
+  minItems: min,
+  description,
+});
+
 const SLIDE_SCHEMA: Schema = {
   type: SchemaType.OBJECT,
   properties: {
@@ -45,9 +52,9 @@ const SLIDE_SCHEMA: Schema = {
     ]),
     title: { type: SchemaType.STRING },
     subtitle: { type: SchemaType.STRING },
-    bullets: stringArray,
-    leftBullets: stringArray,
-    rightBullets: stringArray,
+    bullets: bulletsSchema(4, "4 ou 5 bullets informatives (8 à 14 mots chacune), jamais moins de 4."),
+    leftBullets: bulletsSchema(3, "3 à 4 bullets informatives (8 à 14 mots chacune)."),
+    rightBullets: bulletsSchema(3, "3 à 4 bullets informatives (8 à 14 mots chacune)."),
     body: { type: SchemaType.STRING },
     quoteAuthor: { type: SchemaType.STRING },
     icon: stringEnum(ALL_ICON_IDS),
