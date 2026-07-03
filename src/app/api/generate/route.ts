@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generatePresentation } from "@/lib/anthropic";
+import { generatePresentation } from "@/lib/ai-provider";
 import type { GenerateRequest } from "@/types/slide";
 
 export async function POST(request: NextRequest) {
@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erreur inconnue.";
-    const status = message.includes("ANTHROPIC_API_KEY") ? 500 : 502;
+    const isConfigError = message.includes("ANTHROPIC_API_KEY") || message.includes("GEMINI_API_KEY");
+    const status = isConfigError ? 500 : 502;
     return NextResponse.json({ error: message }, { status });
   }
 }

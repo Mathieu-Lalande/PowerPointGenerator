@@ -1,9 +1,9 @@
 # SlideCraft AI
 
 Plateforme web pour créer des présentations PowerPoint professionnelles à partir d'idées, de notes,
-de comptes-rendus ou de texte libre. L'IA (Claude) structure et rédige les slides selon un thème
-choisi ; l'éditeur intégré permet d'ajuster le contenu, les icônes/emojis, les cadres et les couleurs
-avant d'exporter un vrai fichier `.pptx` éditable dans PowerPoint.
+de comptes-rendus ou de texte libre. L'IA (Claude ou Gemini, au choix) structure et rédige les slides
+selon un thème choisi ; l'éditeur intégré permet d'ajuster le contenu, les icônes, les cadres et les
+couleurs avant d'exporter un vrai fichier `.pptx` éditable dans PowerPoint.
 
 ## Fonctionnalités (V1)
 
@@ -25,20 +25,30 @@ avant d'exporter un vrai fichier `.pptx` éditable dans PowerPoint.
 
 ```bash
 npm install
-cp .env.example .env.local   # renseignez ANTHROPIC_API_KEY
+cp .env.example .env.local   # renseignez une clé API (voir ci-dessous)
 npm run dev
 ```
 
 Ouvrez [http://localhost:3000](http://localhost:3000).
 
-Une clé API Anthropic est nécessaire pour la génération IA : créez-en une sur
-[console.anthropic.com](https://console.anthropic.com/) et placez-la dans `.env.local`.
+### Moteur IA : Gemini (gratuit) ou Claude (payant)
+
+L'app fonctionne avec l'un ou l'autre, au choix via `.env.local` :
+
+- **Google Gemini** (recommandé pour tester gratuitement) : créez une clé sans carte bancaire sur
+  [aistudio.google.com/apikey](https://aistudio.google.com/apikey), puis renseignez `GEMINI_API_KEY`.
+- **Anthropic Claude** : créez une clé sur [console.anthropic.com](https://console.anthropic.com/),
+  puis renseignez `ANTHROPIC_API_KEY`.
+
+Si `GEMINI_API_KEY` est présente, Gemini est utilisé automatiquement. Pour forcer un fournisseur,
+définissez `AI_PROVIDER=gemini` ou `AI_PROVIDER=anthropic`.
 
 ## Stack technique
 
 - **Next.js 14** (App Router) + **TypeScript**
 - **Tailwind CSS** pour l'UI
-- **@anthropic-ai/sdk** pour la génération de contenu (structured output via tool-use)
+- **@anthropic-ai/sdk** / **@google/generative-ai** pour la génération de contenu (structured output
+  via tool-use / function calling)
 - **pptxgenjs** pour la génération du fichier `.pptx` (texte, formes, graphiques natifs)
 - **lucide-react** pour les icônes d'interface
 
@@ -47,13 +57,16 @@ Une clé API Anthropic est nécessaire pour la génération IA : créez-en une s
 ```
 src/
   app/
-    api/generate/route.ts   # Endpoint qui appelle Claude pour générer le plan de slides
+    api/generate/route.ts   # Endpoint qui délègue au fournisseur IA configuré
     page.tsx                # Orchestration des étapes (saisie -> édition)
   components/                # UI (saisie, éditeur, aperçu de slide, sélecteurs)
   lib/
+    ai-provider.ts           # Sélectionne Claude ou Gemini selon la config
     anthropic.ts             # Appel Claude avec schéma structuré
+    gemini.ts                # Appel Gemini avec schéma structuré
+    presentation-prompt.ts   # Prompt partagé entre les deux fournisseurs
     pptx-export.ts           # Génération du fichier .pptx
-    themes.ts, palettes.ts, emojis.ts, frames.ts   # Bibliothèque de design
+    themes.ts, palettes.ts, icons.ts, frames.ts   # Bibliothèque de design
   types/slide.ts              # Modèle de données (Slide, Theme, Chart...)
 ```
 
