@@ -10,7 +10,8 @@ import Inspector from "@/components/Inspector";
 import PalettePicker from "@/components/PalettePicker";
 import ThemeGrid from "@/components/ThemeGrid";
 import { exportPresentationToPptx } from "@/lib/pptx-export";
-import { Download, Palette, Paintbrush, ArrowLeft, Loader2 } from "lucide-react";
+import PresenterMode from "@/components/PresenterMode";
+import { Download, Palette, Paintbrush, ArrowLeft, Loader2, Play } from "lucide-react";
 import clsx from "clsx";
 
 interface Props {
@@ -34,6 +35,7 @@ export default function EditorStep({ presentation, onChange, onBack }: Props) {
   const [selectedId, setSelectedId] = useState(presentation.slides[0]?.id);
   const [panel, setPanel] = useState<"content" | "theme" | "palette">("content");
   const [exporting, setExporting] = useState(false);
+  const [presenting, setPresenting] = useState(false);
 
   const selected = presentation.slides.find((s) => s.id === selectedId) ?? presentation.slides[0];
 
@@ -110,6 +112,9 @@ export default function EditorStep({ presentation, onChange, onBack }: Props) {
           >
             <Palette size={14} /> Palette
           </button>
+          <button onClick={() => setPresenting(true)} className="btn-secondary px-3 py-1.5 text-xs">
+            <Play size={14} /> Présenter
+          </button>
           <button onClick={handleExport} disabled={exporting} className="btn-primary px-4 py-1.5 text-xs">
             {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
             Exporter .pptx
@@ -178,6 +183,16 @@ export default function EditorStep({ presentation, onChange, onBack }: Props) {
           )}
         </aside>
       </div>
+
+      {presenting && (
+        <PresenterMode
+          presentation={presentation}
+          theme={theme}
+          accent={accent}
+          startIndex={Math.max(0, presentation.slides.findIndex((s) => s.id === selected?.id))}
+          onClose={() => setPresenting(false)}
+        />
+      )}
     </div>
   );
 }

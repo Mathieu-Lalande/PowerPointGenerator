@@ -24,6 +24,8 @@ couleurs avant d'exporter un vrai fichier `.pptx` éditable dans PowerPoint.
   [Mermaid](https://mermaid.js.org/) (flowchart, séquence, classes), par l'IA ou manuellement.
 - **Import d'image / logo** : remplacez l'icône d'une slide par une image ou un logo uploadé
   localement (aucun backend requis, l'image est encodée directement dans la présentation).
+- **Mode présentation** : lancez un vrai plein écran pour présenter le diaporama, avec
+  navigation clavier (← → / Espace), notes orateur affichables (`N`), et fermeture avec `Échap`.
 
 ## Démarrage
 
@@ -47,6 +49,17 @@ L'app fonctionne avec l'un ou l'autre, au choix via `.env.local` :
 Si `GEMINI_API_KEY` est présente, Gemini est utilisé automatiquement. Pour forcer un fournisseur,
 définissez `AI_PROVIDER=gemini` ou `AI_PROVIDER=anthropic`.
 
+### Mode présentation
+
+Depuis l'éditeur, cliquez sur **Présenter** pour lancer le diaporama en plein écran.
+
+| Touche | Action |
+| --- | --- |
+| `→` / `Espace` | Slide suivante |
+| `←` | Slide précédente |
+| `N` | Afficher / masquer les notes orateur |
+| `Échap` | Quitter |
+
 ## Stack technique
 
 - **Next.js 14** (App Router) + **TypeScript**
@@ -54,6 +67,7 @@ définissez `AI_PROVIDER=gemini` ou `AI_PROVIDER=anthropic`.
 - **@anthropic-ai/sdk** / **@google/generative-ai** pour la génération de contenu (structured output
   via tool-use / function calling)
 - **pptxgenjs** pour la génération du fichier `.pptx` (texte, formes, graphiques natifs)
+- **mermaid** pour le rendu des diagrammes UML/BPMN (aperçu + rasterisation pour l'export)
 - **lucide-react** pour les icônes d'interface
 
 ## Structure du projet
@@ -64,6 +78,8 @@ src/
     api/generate/route.ts   # Endpoint qui délègue au fournisseur IA configuré
     page.tsx                # Orchestration des étapes (saisie -> édition)
   components/                # UI (saisie, éditeur, aperçu de slide, sélecteurs)
+    PresenterMode.tsx         # Mode présentation plein écran
+    DiagramPreview.tsx        # Rendu d'un diagramme Mermaid dans l'aperçu
   lib/
     ai-provider.ts           # Sélectionne Claude ou Gemini selon la config
     anthropic.ts             # Appel Claude avec schéma structuré
