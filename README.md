@@ -20,6 +20,10 @@ couleurs avant d'exporter un vrai fichier `.pptx` éditable dans PowerPoint.
   notes orateur.
 - **Export PPTX natif** : génère un vrai fichier `.pptx` (via `pptxgenjs`), avec graphiques
   natifs PowerPoint, prêt à être édité ou présenté.
+- **Diagrammes UML/BPMN** : slides de type diagramme générées à partir de code
+  [Mermaid](https://mermaid.js.org/) (flowchart, séquence, classes), par l'IA ou manuellement.
+- **Import d'image / logo** : remplacez l'icône d'une slide par une image ou un logo uploadé
+  localement (aucun backend requis, l'image est encodée directement dans la présentation).
 
 ## Démarrage
 
@@ -66,14 +70,17 @@ src/
     gemini.ts                # Appel Gemini avec schéma structuré
     presentation-prompt.ts   # Prompt partagé entre les deux fournisseurs
     pptx-export.ts           # Génération du fichier .pptx
+    diagram.ts               # Rendu Mermaid (UML/BPMN) partagé aperçu + export
+    svg-raster.ts            # Rasterisation SVG -> PNG pour l'export PPTX
     themes.ts, palettes.ts, icons.ts, frames.ts   # Bibliothèque de design
   types/slide.ts              # Modèle de données (Slide, Theme, Chart...)
 ```
 
-## Feuille de route (prochaines itérations)
+## Feuille de route
 
-- Génération de diagrammes UML/BPMN à partir de texte
-- Import d'images / logos, banque d'images
-- Édition inline directement sur l'aperçu (drag & drop, redimensionnement)
-- Comptes utilisateurs et bibliothèque de présentations sauvegardées
-- Export PDF et partage par lien
+- [x] Génération de diagrammes UML/BPMN à partir de texte (Mermaid)
+- [x] Import d'images / logos
+- [ ] Banque d'images intégrée
+- [ ] Édition inline directement sur l'aperçu (drag & drop, redimensionnement)
+- [ ] Comptes utilisateurs et bibliothèque de présentations sauvegardées
+- [ ] Export PDF et partage par lien

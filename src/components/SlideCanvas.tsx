@@ -4,6 +4,7 @@ import type { Slide, Theme } from "@/types/slide";
 import { getFrame } from "@/lib/frames";
 import { getIconComponent, DEFAULT_ILLUSTRATION_ICON } from "@/lib/icons";
 import MiniChart from "@/components/MiniChart";
+import DiagramPreview from "@/components/DiagramPreview";
 import clsx from "clsx";
 
 interface Props {
@@ -169,10 +170,15 @@ export default function SlideCanvas({ slide, theme, accent }: Props) {
         return (
           <div className="flex h-full items-center gap-8">
             <div
-              className="flex h-36 w-36 flex-shrink-0 items-center justify-center rounded-2xl"
+              className="flex h-36 w-36 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl"
               style={{ backgroundColor: c.surface }}
             >
-              <IllustrationIcon size={56} strokeWidth={1.5} color={accent} />
+              {slide.imageDataUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={slide.imageDataUrl} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <IllustrationIcon size={56} strokeWidth={1.5} color={accent} />
+              )}
             </div>
             <div className="flex-1">
               <h2 className="mb-2 text-xl font-bold" style={headingStyle}>
@@ -182,6 +188,17 @@ export default function SlideCanvas({ slide, theme, accent }: Props) {
               <p className="text-base leading-relaxed" style={bodyStyle}>
                 {slide.body}
               </p>
+            </div>
+          </div>
+        );
+      case "diagram":
+        return (
+          <div className="flex h-full flex-col gap-3">
+            <h2 className="text-xl font-bold" style={headingStyle}>
+              {slide.title}
+            </h2>
+            <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-xl bg-white p-4 shadow-inner">
+              <DiagramPreview code={slide.diagramCode} className="max-h-full max-w-full object-contain" />
             </div>
           </div>
         );

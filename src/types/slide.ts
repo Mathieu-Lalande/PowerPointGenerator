@@ -6,6 +6,7 @@ export type SlideLayout =
   | "quote"
   | "chart"
   | "image-text"
+  | "diagram"
   | "closing";
 
 export type ChartType = "bar" | "line" | "pie" | "donut";
@@ -32,7 +33,9 @@ export interface Slide {
   body?: string;
   quoteAuthor?: string;
   chart?: ChartData;
+  diagramCode?: string;
   icon?: string;
+  imageDataUrl?: string;
   frame?: string;
   notes?: string;
 }

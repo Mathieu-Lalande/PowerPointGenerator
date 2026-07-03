@@ -1,7 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Lightbulb, NotebookPen, Users, FileText, Sparkles, Loader2 } from "lucide-react";
+import {
+  Lightbulb,
+  NotebookPen,
+  Users,
+  FileText,
+  Sparkles,
+  Loader2,
+  PenLine,
+  Wand2,
+  Download,
+  Palette,
+  Shapes,
+  BarChart3,
+  Workflow,
+} from "lucide-react";
 import clsx from "clsx";
 import ThemeGrid from "@/components/ThemeGrid";
 import type { GenerateRequest } from "@/types/slide";
@@ -17,6 +31,36 @@ const KIND_OPTIONS: { id: GenerateRequest["inputKind"]; label: string; icon: any
   { id: "notes", label: "Notes", icon: NotebookPen, hint: "Notes en vrac" },
   { id: "meeting", label: "Compte-rendu", icon: Users, hint: "Réunion, atelier" },
   { id: "raw", label: "Texte libre", icon: FileText, hint: "Article, document" },
+];
+
+const STEPS = [
+  {
+    icon: PenLine,
+    title: "1. Décrivez",
+    text: "Collez une idée, des notes, un compte-rendu ou un texte déjà rédigé.",
+  },
+  {
+    icon: Wand2,
+    title: "2. L'IA structure",
+    text: "Claude ou Gemini organise le contenu en slides claires : titres, puces, graphiques, diagrammes.",
+  },
+  {
+    icon: Palette,
+    title: "3. Personnalisez",
+    text: "Ajustez le thème, les couleurs, les icônes et le texte dans l'éditeur intégré.",
+  },
+  {
+    icon: Download,
+    title: "4. Exportez",
+    text: "Téléchargez un vrai fichier .pptx, éditable dans PowerPoint ou Google Slides.",
+  },
+];
+
+const FEATURES = [
+  { icon: Palette, label: "6 thèmes visuels" },
+  { icon: Shapes, label: "Icônes & cadres pro" },
+  { icon: BarChart3, label: "Graphiques natifs" },
+  { icon: Workflow, label: "Diagrammes UML/BPMN" },
 ];
 
 const DEFAULT_SOURCE_TEXT = `Je voudrais lancer une application mobile qui aide les gens à réduire leur gaspillage alimentaire. L'idée : l'utilisateur scanne ses courses avec la caméra du téléphone, l'app détecte les dates de péremption et envoie des rappels avant que les produits ne périment. Elle propose aussi des recettes adaptées aux ingrédients qui vont bientôt expirer.
@@ -48,6 +92,36 @@ export default function InputStep({ onGenerate, loading, error }: Props) {
           Collez vos idées, vos notes ou un compte-rendu. Choisissez un thème.
           L&apos;IA structure et rédige vos slides, prêtes à exporter en .pptx.
         </p>
+
+        <div className="mx-auto mt-6 flex max-w-2xl flex-wrap items-center justify-center gap-2">
+          {FEATURES.map((f) => {
+            const Icon = f.icon;
+            return (
+              <span
+                key={f.label}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-xs text-white/70"
+              >
+                <Icon size={13} className="text-accent" />
+                {f.label}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="mx-auto mb-14 grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4">
+        {STEPS.map((step) => {
+          const Icon = step.icon;
+          return (
+            <div key={step.title} className="text-center">
+              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10">
+                <Icon size={20} className="text-accent" />
+              </div>
+              <p className="mb-1 text-sm font-semibold text-white">{step.title}</p>
+              <p className="text-xs leading-relaxed text-white/50">{step.text}</p>
+            </div>
+          );
+        })}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">

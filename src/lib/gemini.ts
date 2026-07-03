@@ -48,6 +48,7 @@ const SLIDE_SCHEMA: Schema = {
       "quote",
       "chart",
       "image-text",
+      "diagram",
       "closing",
     ]),
     title: { type: SchemaType.STRING },
@@ -75,6 +76,11 @@ const SLIDE_SCHEMA: Schema = {
           },
         },
       },
+    },
+    diagramCode: {
+      type: SchemaType.STRING,
+      description:
+        "Uniquement pour layout=diagram : code Mermaid valide (flowchart TD, sequenceDiagram, ou classDiagram) représentant un processus, un workflow, une architecture ou un parcours utilisateur. Reste simple : 4 à 8 nœuds/étapes maximum.",
     },
     notes: { type: SchemaType.STRING },
   },

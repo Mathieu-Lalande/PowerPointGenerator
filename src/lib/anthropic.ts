@@ -40,6 +40,7 @@ const PRESENTATION_TOOL = {
                 "quote",
                 "chart",
                 "image-text",
+                "diagram",
                 "closing",
               ],
             },
@@ -88,6 +89,11 @@ const PRESENTATION_TOOL = {
                   },
                 },
               },
+            },
+            diagramCode: {
+              type: "string",
+              description:
+                "Uniquement pour layout=diagram : code Mermaid valide (flowchart TD, sequenceDiagram, ou classDiagram) représentant un processus, un workflow, une architecture ou un parcours utilisateur. Reste simple : 4 à 8 nœuds/étapes maximum.",
             },
             notes: {
               type: "string",

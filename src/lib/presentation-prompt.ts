@@ -14,8 +14,9 @@ Style visé : ${theme.name} (${theme.description}).
 
 Règles de structure :
 - Structure obligatoire : une slide de titre, éventuellement des slides "section" pour séparer les parties, un corps développé, une slide de clôture ("closing") avec les prochaines étapes.
-- Varie les layouts (title-bullets, two-column, quote, chart, image-text) selon le contenu, n'utilise pas que des listes à puces.
+- Varie les layouts (title-bullets, two-column, quote, chart, image-text, diagram) selon le contenu, n'utilise pas que des listes à puces.
 - Si le contenu contient des chiffres, des tendances ou des comparaisons, crée au moins une slide de type "chart" avec des données réalistes extraites du texte.
+- Si le contenu décrit un processus, un workflow, des étapes séquentielles, une architecture technique ou un parcours utilisateur, crée une slide de type "diagram" avec un diagramme Mermaid valide dans le champ diagramCode (flowchart TD pour un processus, sequenceDiagram pour des interactions entre acteurs, classDiagram pour une structure de données). Reste simple : 4 à 8 nœuds/étapes maximum, syntaxe Mermaid strictement valide.
 
 Règles de densité (très important, ne jamais laisser une slide vide ou pauvre) :
 - Chaque slide "title-bullets" ou "closing" doit avoir EXACTEMENT 4 ou 5 bullets, jamais moins de 4.

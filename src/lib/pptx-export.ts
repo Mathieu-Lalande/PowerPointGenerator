@@ -2,6 +2,8 @@ import type { Presentation, Slide, Theme } from "@/types/slide";
 import { getFrame } from "@/lib/frames";
 import { iconToPngDataUrl } from "@/lib/icon-raster";
 import { DEFAULT_ILLUSTRATION_ICON } from "@/lib/icons";
+import { renderMermaidToSvg } from "@/lib/diagram";
+import { svgToRasterInfo, fitContain } from "@/lib/svg-raster";
 
 const hex = (c: string) => c.replace("#", "");
 
@@ -246,11 +248,6 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
       break;
     }
     case "image-text": {
-      const illustrationDataUrl = await iconToPngDataUrl(
-        slide.icon || DEFAULT_ILLUSTRATION_ICON,
-        accent,
-        256
-      );
       s.addShape("roundRect", {
         x: 0.6,
         y: 1.6,
@@ -260,8 +257,24 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         fill: { color: hex(theme.colors.surface) },
         line: { type: "none" },
       });
-      if (illustrationDataUrl) {
-        s.addImage({ data: illustrationDataUrl, x: 1.55, y: 2.55, w: 1.1, h: 1.1 });
+      if (slide.imageDataUrl) {
+        s.addImage({
+          data: slide.imageDataUrl,
+          x: 0.6,
+          y: 1.6,
+          w: 3,
+          h: 3,
+          sizing: { type: "cover", w: 3, h: 3 },
+        });
+      } else {
+        const illustrationDataUrl = await iconToPngDataUrl(
+          slide.icon || DEFAULT_ILLUSTRATION_ICON,
+          accent,
+          256
+        );
+        if (illustrationDataUrl) {
+          s.addImage({ data: illustrationDataUrl, x: 1.55, y: 2.55, w: 1.1, h: 1.1 });
+        }
       }
       s.addText(slide.title || "", {
         x: 4.0,
@@ -283,6 +296,51 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         color: textColor,
         fontFace: theme.bodyFont,
       });
+      break;
+    }
+    case "diagram": {
+      s.addText(slide.title || "", {
+        x: 0.6,
+        y: 0.4,
+        w: 8.8,
+        h: 0.7,
+        fontSize: 22,
+        bold: true,
+        color: textColor,
+        fontFace: theme.headingFont,
+      });
+      if (slide.diagramCode?.trim()) {
+        try {
+          const svg = await renderMermaidToSvg(slide.diagramCode);
+          const raster = await svgToRasterInfo(svg, 1400);
+          if (raster) {
+            const boxX = 0.6;
+            const boxY = 1.3;
+            const boxW = 8.8;
+            const boxH = 3.9;
+            const pad = 0.3;
+            s.addShape("roundRect", {
+              x: boxX,
+              y: boxY,
+              w: boxW,
+              h: boxH,
+              rectRadius: 0.08,
+              fill: { color: "FFFFFF" },
+              line: { type: "none" },
+            });
+            const { w, h } = fitContain(boxW - pad * 2, boxH - pad * 2, raster.aspect);
+            s.addImage({
+              data: raster.dataUrl,
+              x: boxX + (boxW - w) / 2,
+              y: boxY + (boxH - h) / 2,
+              w,
+              h,
+            });
+          }
+        } catch {
+          // Invalid Mermaid syntax: leave the slide without a diagram rather than failing the export.
+        }
+      }
       break;
     }
     case "closing": {
