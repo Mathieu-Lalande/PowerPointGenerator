@@ -3,6 +3,7 @@
 import type { Slide, Theme } from "@/types/slide";
 import { getFrame } from "@/lib/frames";
 import { getIconComponent, DEFAULT_ILLUSTRATION_ICON } from "@/lib/icons";
+import { resolveFontFamily } from "@/lib/fonts";
 import MiniChart from "@/components/MiniChart";
 import DiagramPreview from "@/components/DiagramPreview";
 import clsx from "clsx";
@@ -11,15 +12,27 @@ interface Props {
   slide: Slide;
   theme: Theme;
   accent: string;
+  /** Staggers bullet entrances (used in presenter mode; off while editing). */
+  animate?: boolean;
 }
 
-export default function SlideCanvas({ slide, theme, accent }: Props) {
+export default function SlideCanvas({ slide, theme, accent, animate = false }: Props) {
   const c = theme.colors;
   const frame = getFrame(slide.frame);
-  const headingStyle = { fontFamily: theme.headingFont, color: c.text };
-  const bodyStyle = { fontFamily: theme.bodyFont, color: c.text };
+  const headingFont = resolveFontFamily(theme.headingFont);
+  const bodyFont = resolveFontFamily(theme.bodyFont);
+  const headingStyle = { fontFamily: headingFont, color: c.text };
+  const bodyStyle = { fontFamily: bodyFont, color: c.text };
   const SlideIcon = getIconComponent(slide.icon);
   const IllustrationIcon = getIconComponent(slide.icon) ?? getIconComponent(DEFAULT_ILLUSTRATION_ICON)!;
+
+  function bulletDelay(i: number): React.CSSProperties | undefined {
+    if (!animate) return undefined;
+    return {
+      animation: "bullet-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both",
+      animationDelay: `${0.15 + i * 0.09}s`,
+    };
+  }
 
   const base = (
     <div
@@ -54,11 +67,11 @@ export default function SlideCanvas({ slide, theme, accent }: Props) {
                 <SlideIcon size={30} strokeWidth={1.6} color={c.background} />
               </span>
             )}
-            <h1 className="relative text-4xl font-bold" style={{ fontFamily: theme.headingFont, color: c.background }}>
+            <h1 className="relative text-4xl font-bold" style={{ fontFamily: headingFont, color: c.background }}>
               {slide.title}
             </h1>
             {slide.subtitle && (
-              <p className="relative text-lg" style={{ fontFamily: theme.bodyFont, color: c.background, opacity: 0.85 }}>
+              <p className="relative text-lg" style={{ fontFamily: bodyFont, color: c.background, opacity: 0.85 }}>
                 {slide.subtitle}
               </p>
             )}
@@ -95,7 +108,7 @@ export default function SlideCanvas({ slide, theme, accent }: Props) {
             <span className="mb-6 h-1 w-14 flex-shrink-0 rounded-full" style={{ backgroundColor: accent }} />
             <ul className="flex flex-1 flex-col justify-center space-y-5" style={bodyStyle}>
               {slide.bullets?.map((b, i) => (
-                <li key={i} className="flex items-start gap-3 text-base leading-snug">
+                <li key={i} className="flex items-start gap-3 text-base leading-snug" style={bulletDelay(i)}>
                   <span
                     className="mt-2 h-2 w-2 flex-shrink-0 rounded-full"
                     style={{ backgroundColor: accent }}
@@ -119,7 +132,7 @@ export default function SlideCanvas({ slide, theme, accent }: Props) {
                 style={{ ...bodyStyle, borderColor: c.textMuted + "30" }}
               >
                 {slide.leftBullets?.map((b, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm leading-snug">
+                  <li key={i} className="flex items-start gap-3 text-sm leading-snug" style={bulletDelay(i)}>
                     <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full" style={{ backgroundColor: accent }} />
                     <span>{b}</span>
                   </li>
@@ -127,7 +140,7 @@ export default function SlideCanvas({ slide, theme, accent }: Props) {
               </ul>
               <ul className="flex flex-col justify-center space-y-4" style={bodyStyle}>
                 {slide.rightBullets?.map((b, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm leading-snug">
+                  <li key={i} className="flex items-start gap-3 text-sm leading-snug" style={bulletDelay(i)}>
                     <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full" style={{ backgroundColor: accent }} />
                     <span>{b}</span>
                   </li>
@@ -212,7 +225,7 @@ export default function SlideCanvas({ slide, theme, accent }: Props) {
               className="pointer-events-none absolute -right-16 -bottom-16 h-64 w-64 rounded-full opacity-10"
               style={{ backgroundColor: c.background }}
             />
-            <h2 className="relative text-3xl font-bold" style={{ fontFamily: theme.headingFont, color: c.background }}>
+            <h2 className="relative text-3xl font-bold" style={{ fontFamily: headingFont, color: c.background }}>
               {slide.title || "Merci"}
             </h2>
             <ul className="relative space-y-3">
@@ -220,7 +233,7 @@ export default function SlideCanvas({ slide, theme, accent }: Props) {
                 <li
                   key={i}
                   className="flex items-start gap-2 text-base"
-                  style={{ color: c.background, opacity: 0.92 }}
+                  style={{ color: c.background, opacity: 0.92, ...bulletDelay(i) }}
                 >
                   <span style={{ color: accent }}>→</span>
                   <span>{b}</span>

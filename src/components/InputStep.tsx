@@ -7,7 +7,6 @@ import {
   Users,
   FileText,
   Sparkles,
-  Loader2,
   PenLine,
   Wand2,
   Download,
@@ -18,6 +17,7 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import ThemeGrid from "@/components/ThemeGrid";
+import GeneratingOverlay from "@/components/GeneratingOverlay";
 import type { GenerateRequest } from "@/types/slide";
 
 interface Props {
@@ -124,6 +124,9 @@ export default function InputStep({ onGenerate, loading, error }: Props) {
         })}
       </div>
 
+      {loading ? (
+        <GeneratingOverlay />
+      ) : (
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <div className="card p-6">
           <label className="mb-3 block text-center text-sm font-medium text-white/70">
@@ -194,21 +197,13 @@ export default function InputStep({ onGenerate, loading, error }: Props) {
 
           <button
             type="button"
-            disabled={loading || sourceText.trim().length < 10}
+            disabled={sourceText.trim().length < 10}
             onClick={() =>
               onGenerate({ sourceText, inputKind, themeId, slideCount, language })
             }
             className="btn-primary mt-6 w-full"
           >
-            {loading ? (
-              <>
-                <Loader2 size={18} className="animate-spin" /> Génération en cours...
-              </>
-            ) : (
-              <>
-                <Sparkles size={18} /> Générer ma présentation
-              </>
-            )}
+            <Sparkles size={18} /> Générer ma présentation
           </button>
         </div>
 
@@ -219,6 +214,7 @@ export default function InputStep({ onGenerate, loading, error }: Props) {
           <ThemeGrid selectedId={themeId} onSelect={setThemeId} />
         </div>
       </div>
+      )}
     </div>
   );
 }

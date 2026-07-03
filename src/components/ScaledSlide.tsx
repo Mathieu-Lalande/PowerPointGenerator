@@ -9,9 +9,10 @@ interface Props {
   theme: Theme;
   accent: string;
   nativeWidth?: number;
+  animate?: boolean;
 }
 
-export default function ScaledSlide({ slide, theme, accent, nativeWidth = 960 }: Props) {
+export default function ScaledSlide({ slide, theme, accent, nativeWidth = 960, animate = false }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0);
   const nativeHeight = (nativeWidth * 9) / 16;
@@ -37,7 +38,7 @@ export default function ScaledSlide({ slide, theme, accent, nativeWidth = 960 }:
           visibility: scale > 0 ? "visible" : "hidden",
         }}
       >
-        <SlideCanvas slide={slide} theme={theme} accent={accent} />
+        <SlideCanvas slide={slide} theme={theme} accent={accent} animate={animate} />
       </div>
     </div>
   );

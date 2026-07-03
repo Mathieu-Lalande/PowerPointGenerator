@@ -7,6 +7,24 @@ import { svgToRasterInfo, fitContain } from "@/lib/svg-raster";
 
 const hex = (c: string) => c.replace("#", "");
 
+// The web preview uses real Google Fonts (Space Grotesk, Sora, Playfair
+// Display...), but pptxgenjs can't embed fonts in the .pptx file — PowerPoint
+// falls back to whatever's installed on the viewer's machine, which is
+// essentially never one of those. Substitute the closest font that ships
+// with Windows/Mac Office so the exported deck looks intentional instead of
+// randomly substituted.
+const PPTX_SAFE_FONT: Record<string, string> = {
+  Poppins: "Calibri",
+  "Space Grotesk": "Trebuchet MS",
+  Sora: "Century Gothic",
+  "Playfair Display": "Georgia",
+  Inter: "Calibri",
+};
+
+function pptxFont(name: string): string {
+  return PPTX_SAFE_FONT[name] ?? name;
+}
+
 function chartTypeFor(pptx: any, type: string) {
   switch (type) {
     case "line":
@@ -56,6 +74,8 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
   const mutedColor = hex(theme.colors.textMuted);
   const primary = hex(theme.colors.primary);
   const accentHex = hex(accent);
+  const headingFont = pptxFont(theme.headingFont);
+  const bodyFont = pptxFont(theme.bodyFont);
 
   addFrame(s, slide.frame, theme, accent);
 
@@ -71,7 +91,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         fontSize: 40,
         bold: true,
         color: hex(theme.colors.background),
-        fontFace: theme.headingFont,
+        fontFace: headingFont,
         align: "left",
       });
       if (slide.subtitle) {
@@ -82,7 +102,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
           h: 1,
           fontSize: 18,
           color: hex(theme.colors.background),
-          fontFace: theme.bodyFont,
+          fontFace: bodyFont,
           align: "left",
         });
       }
@@ -99,7 +119,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         fontSize: 34,
         bold: true,
         color: hex(theme.colors.text),
-        fontFace: theme.headingFont,
+        fontFace: headingFont,
       });
       break;
     }
@@ -114,7 +134,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         fontSize: 20,
         bold: true,
         color: textColor,
-        fontFace: theme.headingFont,
+        fontFace: headingFont,
         valign: "middle",
       });
       s.addShape("rect", { x: 0.65, y: 1.3, w: 0.55, h: 0.06, fill: { color: accentHex } });
@@ -129,7 +149,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
             fontSize: 18,
             paraSpaceAfter: 14,
             color: textColor,
-            fontFace: theme.bodyFont,
+            fontFace: bodyFont,
             valign: "middle",
           }
         );
@@ -145,7 +165,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         fontSize: 24,
         bold: true,
         color: textColor,
-        fontFace: theme.headingFont,
+        fontFace: headingFont,
       });
       s.addShape("rect", { x: 0.62, y: 1.2, w: 0.55, h: 0.06, fill: { color: accentHex } });
       if (slide.leftBullets?.length) {
@@ -159,7 +179,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
             fontSize: 16,
             paraSpaceAfter: 10,
             color: textColor,
-            fontFace: theme.bodyFont,
+            fontFace: bodyFont,
             valign: "middle",
           }
         );
@@ -175,7 +195,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
             fontSize: 16,
             paraSpaceAfter: 10,
             color: textColor,
-            fontFace: theme.bodyFont,
+            fontFace: bodyFont,
             valign: "middle",
           }
         );
@@ -198,7 +218,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         fontSize: 26,
         italic: true,
         color: textColor,
-        fontFace: theme.headingFont,
+        fontFace: headingFont,
         align: "center",
       });
       if (slide.quoteAuthor) {
@@ -209,7 +229,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
           h: 0.5,
           fontSize: 16,
           color: mutedColor,
-          fontFace: theme.bodyFont,
+          fontFace: bodyFont,
           align: "center",
         });
       }
@@ -224,7 +244,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         fontSize: 22,
         bold: true,
         color: textColor,
-        fontFace: theme.headingFont,
+        fontFace: headingFont,
       });
       if (slide.chart) {
         const palette = [accentHex, primary, hex(theme.colors.secondary), mutedColor];
@@ -284,7 +304,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         fontSize: 22,
         bold: true,
         color: textColor,
-        fontFace: theme.headingFont,
+        fontFace: headingFont,
       });
       s.addShape("rect", { x: 4.02, y: 2.25, w: 0.55, h: 0.06, fill: { color: accentHex } });
       s.addText(slide.body || "", {
@@ -294,7 +314,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         h: 2.6,
         fontSize: 16,
         color: textColor,
-        fontFace: theme.bodyFont,
+        fontFace: bodyFont,
       });
       break;
     }
@@ -307,7 +327,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         fontSize: 22,
         bold: true,
         color: textColor,
-        fontFace: theme.headingFont,
+        fontFace: headingFont,
       });
       if (slide.diagramCode?.trim()) {
         try {
@@ -353,7 +373,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
         fontSize: 34,
         bold: true,
         color: hex(theme.colors.background),
-        fontFace: theme.headingFont,
+        fontFace: headingFont,
       });
       if (slide.bullets?.length) {
         s.addText(
@@ -366,7 +386,7 @@ async function buildSlide(pptx: any, slide: Slide, theme: Theme, accent: string)
             fontSize: 18,
             paraSpaceAfter: 10,
             color: hex(theme.colors.background),
-            fontFace: theme.bodyFont,
+            fontFace: bodyFont,
           }
         );
       }

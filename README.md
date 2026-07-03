@@ -25,7 +25,14 @@ couleurs avant d'exporter un vrai fichier `.pptx` éditable dans PowerPoint.
 - **Import d'image / logo** : remplacez l'icône d'une slide par une image ou un logo uploadé
   localement (aucun backend requis, l'image est encodée directement dans la présentation).
 - **Mode présentation** : lancez un vrai plein écran pour présenter le diaporama, avec
-  navigation clavier (← → / Espace), notes orateur affichables (`N`), et fermeture avec `Échap`.
+  navigation clavier (← → / Espace), notes orateur affichables (`N`), fermeture avec `Échap`,
+  transitions animées entre les slides et arrivée des puces en cascade.
+- **Chargement animé** : pendant la génération IA, un aperçu animé (skeleton) et des messages
+  de progression remplacent l'attente silencieuse.
+- **Polices cohérentes** : chaque thème charge sa vraie typographie (Space Grotesk, Playfair
+  Display, Sora, Poppins) dans l'aperçu ; l'export `.pptx` utilise des polices équivalentes
+  garanties disponibles sous Windows/Mac (Calibri, Georgia, Trebuchet MS...) pour un rendu
+  fidèle même sans les polices Google installées.
 
 ## Démarrage
 
@@ -80,6 +87,7 @@ src/
   components/                # UI (saisie, éditeur, aperçu de slide, sélecteurs)
     PresenterMode.tsx         # Mode présentation plein écran
     DiagramPreview.tsx        # Rendu d'un diagramme Mermaid dans l'aperçu
+    GeneratingOverlay.tsx     # État de chargement animé pendant la génération
   lib/
     ai-provider.ts           # Sélectionne Claude ou Gemini selon la config
     anthropic.ts             # Appel Claude avec schéma structuré
@@ -88,6 +96,7 @@ src/
     pptx-export.ts           # Génération du fichier .pptx
     diagram.ts               # Rendu Mermaid (UML/BPMN) partagé aperçu + export
     svg-raster.ts            # Rasterisation SVG -> PNG pour l'export PPTX
+    fonts.ts                 # Polices Google Fonts chargées + résolution par thème
     themes.ts, palettes.ts, icons.ts, frames.ts   # Bibliothèque de design
   types/slide.ts              # Modèle de données (Slide, Theme, Chart...)
 ```

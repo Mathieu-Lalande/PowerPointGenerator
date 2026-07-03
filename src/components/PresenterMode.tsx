@@ -108,10 +108,11 @@ export default function PresenterMode({ presentation, theme, accent, startIndex,
         </button>
 
         <div
-          className="aspect-video max-h-full max-w-full overflow-hidden rounded-lg shadow-2xl"
+          key={index}
+          className="animate-slide-enter aspect-video max-h-full max-w-full overflow-hidden rounded-lg shadow-2xl"
           style={{ width: "min(100%, calc((100vh - 140px) * 16 / 9))" }}
         >
-          <ScaledSlide slide={slide} theme={theme} accent={accent} />
+          <ScaledSlide slide={slide} theme={theme} accent={accent} animate />
         </div>
 
         <button
